@@ -9,9 +9,6 @@ def smiles_to_complex(smiles, add_hydrogens=False):
         mol = Chem.AddHs(mol)
     broken_mols = BRICS.BreakBRICSBonds(mol)
     frags = Chem.GetMolFrags(broken_mols)
-    print(f"atoms: {mol.GetNumAtoms()}")
-    print(f"bonds: {mol.GetNumBonds()}")
-    print(f"frags: {frags}")
 
     complex = toponetx.CombinatorialComplex()
 
