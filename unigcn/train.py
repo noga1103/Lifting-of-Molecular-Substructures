@@ -12,6 +12,7 @@ from topomodelx.utils.sparse import from_sparse
 import dataset.molhiv
 
 from dataclasses import dataclass
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 torch.manual_seed(0)
 DEVICE = torch.device("cuda")
@@ -197,6 +198,8 @@ for epoch_i in range(1, num_epochs + 1):
         epoch_loss.append(loss.item())
 
     if epoch_i % test_interval == 0:
+        model.eval()
+        y_true_list, y_pred_list = [], []
         with torch.no_grad():
             train_mean_loss = np.mean(epoch_loss)
             test_losses = []
@@ -209,10 +212,16 @@ for epoch_i in range(1, num_epochs + 1):
 
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
+                y_true_list.append(y.item())
+                y_pred_list.append(y_hat.item())
                 test_losses.append(test_loss.item())
             test_mean_loss = np.mean(test_losses)
+            r2 = r2_score(y_true_list, y_pred_list)
+            mae = mean_absolute_error(y_true_list, y_pred_list)
+            rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
+
             print(
-                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f} Test Loss: {test_mean_loss:.4f}",
+                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, " f"R_: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}",
                 flush=True,
             )
 
@@ -240,6 +249,8 @@ for epoch_i in range(1, num_epochs + 1):
         epoch_loss.append(loss.item())
 
     if epoch_i % test_interval == 0:
+        model.eval()
+        y_true_list, y_pred_list = [], []
         with torch.no_grad():
             train_mean_loss = np.mean(epoch_loss)
             test_losses = []
@@ -252,9 +263,14 @@ for epoch_i in range(1, num_epochs + 1):
 
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
+                y_true_list.append(y.item())
+                y_pred_list.append(y_hat.item())
                 test_losses.append(test_loss.item())
             test_mean_loss = np.mean(test_losses)
+            r2 = r2_score(y_true_list, y_pred_list)
+            mae = mean_absolute_error(y_true_list, y_pred_list)
+            rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
             print(
-                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f} Test Loss: {test_mean_loss:.4f}",
+                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, " f"R_: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}",
                 flush=True,
             )
