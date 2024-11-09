@@ -1,4 +1,3 @@
-import numpy as np
 import toponetx as tnx
 import torch
 
@@ -11,63 +10,105 @@ from topomodelx.utils.sparse import from_sparse
 
 import dataset.molhiv
 
+from dataclasses import dataclass
+import torch
+
 
 torch.manual_seed(0)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+WEIGHT_DTYPE = torch.float32
+X_2_WIDTH = 5
 
 
-def load_data_molhiv():
-    data = dataset.molhiv.get_data()
-    complexes = [d.cell_complex for d in data]
-    x_0s = generate_x_0(complexes)
-    x_1s = generate_x_1(complexes)
-    x_2s = [np.zeros((complex.get_num_faces(), 5)) for complex in complexes]
+@dataclass
+class EnhancedGraph:
+    data: dataset.molhiv.MolHivData
+    cell_complex: tnx.CellComplex
+    x_0: torch.Tensor
+    x_1: torch.Tensor
+    x_2: torch.Tensor
 
 
-def generate_x_0(complexes):
-    ALL_ATOMIC_SYMBOLS = {
-        None: 0,  # None
-        "C": 1,  # Carbon
-        "O": 2,  # Oxygen
-        "N": 3,  # Nitrogen
-        "P": 5,  # Phosphorus
-        "S": 6,  # Sulfur
-        "Cl": 7,  # Chlorine
-        "F": 14,  # Fluorine
-        "I": 15,  # Iodine
-        "Br": 16,  # Bromine
-        "Se": 17,  # Selenium
-        "Si": 18,  # Silicon
-        "As": 19,  # Arsenic
-        "B": 20,  # Boron
-    }
-    x_0s = []
-    for complex in complexes:
-        # Make this a one-hot encoding
-        x_0 = complex.get_node_attributes("atomic_number")
-        x_0s.append(x_0)
-    return x_0s
+ALL_ATOMIC_SYMBOLS = {
+    None: 0,  # None
+    "C": 1,  # Carbon
+    "O": 2,  # Oxygen
+    "N": 3,  # Nitrogen
+    "P": 4,  # Phosphorus
+    "S": 5,  # Sulfur
+    "Cl": 6,  # Chlorine
+    "F": 7,  # Fluorine
+    "I": 8,  # Iodine
+    "Br": 9,  # Bromine
+    "Se": 10,  # Selenium
+    "Si": 11,  # Silicon
+    "As": 12,  # Arsenic
+    "B": 13,  # Boron
+}
+
+ALL_BOND_TYPES = {
+    None: 0,  # Missing bond type
+    rdkit.Chem.rdchem.BondType(1): 1,
+    rdkit.Chem.rdchem.BondType(2): 2,
+    rdkit.Chem.rdchem.BondType(3): 3,
+    rdkit.Chem.rdchem.BondType(12): 4,
+}
 
 
-def generate_x_1(complexes):
-    ALL_BOND_TYPES = {
-        None: 0,  # . missing a bond type, which means it was added to make a hypergraph into a cell complex.
-        rdkit.Chem.rdchem.BondType(1): 1,
-        rdkit.Chem.rdchem.BondType(2): 2,
-        rdkit.Chem.rdchem.BondType(3): 3,
-        rdkit.Chem.rdchem.BondType(12): 4,
-    }
-    x_1s = []
-    for complex in complexes:
-        x_1 = complex.get_edge_attributes("bond_type")
-        x_1s.append(x_1)
-    return x_1s
+def load_molhiv_data() -> list[EnhancedGraph]:
+    datas = dataset.molhiv.get_data()
+    enhanced_graphs = []
+    for data in datas:
+        cell_complex = data.cell_complex
+        x_0 = generate_x_0(cell_complex)
+        x_1 = generate_x_1(cell_complex)
+        x_2 = generate_x_2(cell_complex)
+        enhanced_graphs.append(EnhancedGraph(cell_complex=cell_complex, x_0=x_0, x_1=x_1, x_2=x_2))
+
+    return enhanced_graphs
 
 
-m, x_0s, x_1s, x_2s, ys, complexes = load_data_molhiv()
+def generate_x_0(complex: tnx.CellComplex) -> torch.Tensor:
+    num_symbols = max(ALL_ATOMIC_SYMBOLS.values()) + 1  # Length of one-hot vector
+    node_to_symbol = complex.get_node_attributes("atomic_symbol")
+    x_0 = []
+    for node in complex.nodes:
+        symbol = node_to_symbol.get(node, None)
+        index = ALL_ATOMIC_SYMBOLS.get(symbol, 0)
+        one_hot = torch.zeros(num_symbols, dtype=WEIGHT_DTYPE)
+        one_hot[index] = 1.0
+        x_0.append(one_hot)
+    return torch.stack(x_0)
 
 
-### Load data
+def generate_x_1(complex: tnx.CellComplex) -> torch.Tensor:
+    num_bond_types = max(ALL_BOND_TYPES.values()) + 1
+    edge_to_bond_type = complex.get_edge_attributes("bond_type")
+    x_1 = []
+    # TODO: maybe also add the atomic symbol of each node to the edge features?
+    for edge in complex.edges:
+        bond_type = edge_to_bond_type.get(edge, None)
+        index = ALL_BOND_TYPES.get(bond_type, 0)
+        one_hot = torch.zeros(num_bond_types, dtype=WEIGHT_DTYPE)
+        one_hot[index] = 1.0
+        x_1.append(one_hot)
+    if not x_1:
+        return torch.zeros((0, num_bond_types), dtype=WEIGHT_DTYPE)
+    return torch.stack(x_1)
+
+
+def generate_x_2(complex: tnx.CellComplex) -> torch.Tensor:
+    # TODO: maybe make the feature be the number of atoms/edges in the face
+    return torch.zeros((len(complex.cells), X_2_WIDTH), dtype=WEIGHT_DTYPE)
+
+
+molhiv_data = load_molhiv_data()
+
+### Use the data from molhiv_data to run the neural network below which originally used the shrec data. get rid of the shrec logic.
+### add the adjacency and incidence matrices to the EnhancedGraph dataclass
+### keep everything on the GPU the whole time. Do not move it back and forth with the CPU.
+### regress data.solubility, which is a float. Do this with a linear layer at the end of the model.
+
 shrec, _ = tnx.datasets.shrec_16(size="small")
 
 shrec = {key: np.array(value) for key, value in shrec.items()}
@@ -149,7 +190,7 @@ in_channels_2 = 5
 num_classes = 2
 print(f"The dimension of input features on nodes, edges and faces are: {in_channels_0}, {in_channels_1} and {in_channels_2}.")
 model = Network(in_channels_0, in_channels_1, in_channels_2, num_classes, n_layers=2)
-model = model.to(device)
+model = model.to(DEVICE)
 
 
 ### Train params
@@ -182,13 +223,13 @@ for epoch_i in range(1, num_epochs + 1):
         strict=True,
     ):
         x_0, x_1, y = (
-            torch.tensor(x_0).float().to(device),
-            torch.tensor(x_1).float().to(device),
-            torch.tensor(y).float().to(device),
+            torch.tensor(x_0).float().to(DEVICE),
+            torch.tensor(x_1).float().to(DEVICE),
+            torch.tensor(y).float().to(DEVICE),
         )
         incidence_2_t, adjacency_0 = (
-            incidence_2_t.float().to(device),
-            adjacency_0.float().to(device),
+            incidence_2_t.float().to(DEVICE),
+            adjacency_0.float().to(DEVICE),
         )
         opt.zero_grad()
         y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
@@ -209,13 +250,13 @@ for epoch_i in range(1, num_epochs + 1):
                 strict=True,
             ):
                 x_0, x_1, y = (
-                    torch.tensor(x_0).float().to(device),
-                    torch.tensor(x_1).float().to(device),
-                    torch.tensor(y).float().to(device),
+                    torch.tensor(x_0).float().to(DEVICE),
+                    torch.tensor(x_1).float().to(DEVICE),
+                    torch.tensor(y).float().to(DEVICE),
                 )
                 incidence_2_t, adjacency_0 = (
-                    incidence_2_t.float().to(device),
-                    adjacency_0.float().to(device),
+                    incidence_2_t.float().to(DEVICE),
+                    adjacency_0.float().to(DEVICE),
                 )
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
@@ -227,7 +268,7 @@ for epoch_i in range(1, num_epochs + 1):
 
 ### Train with attention
 model = Network(in_channels_0, in_channels_1, in_channels_2, num_classes, n_layers=2, att=True)
-model = model.to(device)
+model = model.to(DEVICE)
 crit = torch.nn.CrossEntropyLoss()
 opt = torch.optim.Adam(model.parameters(), lr=0.01)
 loss_fn = torch.nn.MSELoss()
@@ -247,13 +288,13 @@ for epoch_i in range(1, num_epochs + 1):
         strict=True,
     ):
         x_0, x_1, y = (
-            torch.tensor(x_0).float().to(device),
-            torch.tensor(x_1).float().to(device),
-            torch.tensor(y).float().to(device),
+            torch.tensor(x_0).float().to(DEVICE),
+            torch.tensor(x_1).float().to(DEVICE),
+            torch.tensor(y).float().to(DEVICE),
         )
         incidence_2_t, adjacency_0 = (
-            incidence_2_t.float().to(device),
-            adjacency_0.float().to(device),
+            incidence_2_t.float().to(DEVICE),
+            adjacency_0.float().to(DEVICE),
         )
         opt.zero_grad()
         y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
@@ -274,13 +315,13 @@ for epoch_i in range(1, num_epochs + 1):
                 strict=True,
             ):
                 x_0, x_1, y = (
-                    torch.tensor(x_0).float().to(device),
-                    torch.tensor(x_1).float().to(device),
-                    torch.tensor(y).float().to(device),
+                    torch.tensor(x_0).float().to(DEVICE),
+                    torch.tensor(x_1).float().to(DEVICE),
+                    torch.tensor(y).float().to(DEVICE),
                 )
                 incidence_2_t, adjacency_0 = (
-                    incidence_2_t.float().to(device),
-                    adjacency_0.float().to(device),
+                    incidence_2_t.float().to(DEVICE),
+                    adjacency_0.float().to(DEVICE),
                 )
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
