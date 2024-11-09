@@ -123,17 +123,9 @@ def generate_x_2(complex: tnx.CellComplex) -> torch.Tensor:
 
 molhiv_data = load_molhiv_data()
 
-# Prepare the data for training
-x_0s = [eg.x_0 for eg in molhiv_data]
-x_1s = [eg.x_1 for eg in molhiv_data]
-x_2s = [eg.x_2 for eg in molhiv_data]
-incidence_2_t_list = [eg.incidence_2_t for eg in molhiv_data]
-adjacency_0_list = [eg.adjacency_0 for eg in molhiv_data]
-ys = [eg.data.solubility for eg in molhiv_data]
-
 # Define input dimensions
-in_channels_0 = x_0s[0].shape[-1]
-in_channels_1 = x_1s[0].shape[-1]
+in_channels_0 = molhiv_data[0].x_0.shape[-1]
+in_channels_1 = molhiv_data[0].x_1.shape[-1]
 in_channels_2 = X_2_WIDTH  # Since x_2 is initialized with X_2_WIDTH
 
 
