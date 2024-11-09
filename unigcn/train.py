@@ -17,7 +17,14 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 torch.manual_seed(0)
 DEVICE = torch.device("cuda")
 WEIGHT_DTYPE = torch.float32
-X_2_WIDTH = 5
+X_2_WIDTH = 1
+# Define input dimensions
+IN_CHANNELS_0 = 20
+IN_CHANNELS_1 = 20
+IN_CHANNELS_2 = 20
+ONE_OUT_0_ENCODING_SIZE = 14
+ONE_OUT_1_ENCODING_SIZE = 5
+ONE_OUT_2_ENCODING_SIZE = 1
 
 
 @dataclass
@@ -124,11 +131,6 @@ def generate_x_2(complex: tnx.CellComplex) -> torch.Tensor:
 
 molhiv_data = load_molhiv_data()
 
-# Define input dimensions
-in_channels_0 = molhiv_data[0].x_0.shape[-1]
-in_channels_1 = molhiv_data[0].x_1.shape[-1]
-in_channels_2 = X_2_WIDTH  # Since x_2 is initialized with X_2_WIDTH
-
 
 # Create Network
 class Network(torch.nn.Module):
@@ -148,31 +150,36 @@ class Network(torch.nn.Module):
             n_layers=n_layers,
             att=att,
         )
+        self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
+        self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
         self.lin_0 = torch.nn.Linear(in_channels_0, 1)
         self.lin_1 = torch.nn.Linear(in_channels_1, 1)
         self.lin_2 = torch.nn.Linear(in_channels_2, 1)
 
     def forward(self, x_0, x_1, adjacency_0, incidence_2_t):
+        x_0 = self.lin_0_input(x_0)
+        x_1 = self.lin_1_input(x_1)
         x_0, x_1, x_2 = self.base_model(x_0, x_1, adjacency_0, incidence_2_t)
         x_0 = self.lin_0(x_0)
         x_1 = self.lin_1(x_1)
         x_2 = self.lin_2(x_2)
-        x_0_mean = torch.mean(x_0)
-        x_1_mean = torch.mean(x_1)
-        x_2_mean = torch.mean(x_2)
-        return x_0_mean + x_1_mean + x_2_mean
+
+        two_dimensional_cells_mean = torch.nanmean(x_2, dim=0)
+        two_dimensional_cells_mean[torch.isnan(two_dimensional_cells_mean)] = 0
+        one_dimensional_cells_mean = torch.nanmean(x_1, dim=0)
+        one_dimensional_cells_mean[torch.isnan(one_dimensional_cells_mean)] = 0
+        zero_dimensional_cells_mean = torch.nanmean(x_0, dim=0)
+        zero_dimensional_cells_mean[torch.isnan(zero_dimensional_cells_mean)] = 0
+        return two_dimensional_cells_mean + one_dimensional_cells_mean + zero_dimensional_cells_mean
 
 
-model = Network(in_channels_0, in_channels_1, in_channels_2, n_layers=2)
+model = Network(IN_CHANNELS_0, IN_CHANNELS_1, IN_CHANNELS_2, n_layers=8)
 model = model.to(DEVICE)
 
 # Loss function and optimizer
 loss_fn = torch.nn.MSELoss()
+
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-
-
-# TODO: remove this
-molhiv_data = list(filter(lambda graph: len(graph.data.cell_complex.cells) != 0, molhiv_data))
 
 # Split dataset
 train_data, test_data = train_test_split(molhiv_data, test_size=0.2, shuffle=True)
