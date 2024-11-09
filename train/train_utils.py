@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from topomodelx.utils.sparse import from_sparse
+from dataclasses import dataclass, field
 import dataset.molhiv
 import rdkit.Chem
 import toponetx as tnx
@@ -41,6 +40,17 @@ ALL_BOND_TYPES = {
 }
 
 
+@dataclass
+class EnhancedGraph:
+    data: dataset.molhiv.MolHivData
+    regression_value: float
+    cell_complex: tnx.CellComplex
+    x_0: torch.Tensor
+    x_1: torch.Tensor
+    x_2: torch.Tensor
+    graph_matrices: dict[str, torch.Tensor] = field(default_factory=dict)
+
+
 def load_molhiv_data() -> list[EnhancedGraph]:
     datas = dataset.molhiv.get_data()
     enhanced_graphs = []
@@ -50,11 +60,6 @@ def load_molhiv_data() -> list[EnhancedGraph]:
         x_1 = generate_x_1(cell_complex)
         x_2 = generate_x_2(cell_complex)
 
-        incidence_2_t = cell_complex.incidence_matrix(rank=2).T
-        adjacency_0 = cell_complex.adjacency_matrix(rank=0)
-        incidence_2_t = from_sparse(incidence_2_t).to(WEIGHT_DTYPE).to(DEVICE)
-        adjacency_0 = from_sparse(adjacency_0).to(WEIGHT_DTYPE).to(DEVICE)
-
         x_0 = x_0.to(DEVICE)
         x_1 = x_1.to(DEVICE)
         x_2 = x_2.to(DEVICE)
@@ -63,11 +68,10 @@ def load_molhiv_data() -> list[EnhancedGraph]:
             EnhancedGraph(
                 data=data,
                 cell_complex=cell_complex,
+                regression_value=data.solubility,
                 x_0=x_0,
                 x_1=x_1,
                 x_2=x_2,
-                incidence_2_t=incidence_2_t,
-                adjacency_0=adjacency_0,
             )
         )
 
@@ -104,13 +108,3 @@ def generate_x_1(complex: tnx.CellComplex) -> torch.Tensor:
 
 def generate_x_2(complex: tnx.CellComplex) -> torch.Tensor:
     return torch.zeros((len(complex.cells), X_2_WIDTH), dtype=WEIGHT_DTYPE)
-
-
-@dataclass
-class EnhancedGraph:
-    data: dataset.molhiv.MolHivData
-    cell_complex: tnx.CellComplex
-    x_0: torch.Tensor
-    x_1: torch.Tensor
-    x_2: torch.Tensor
-    graph_matrices: dict[str, torch.Tensor]

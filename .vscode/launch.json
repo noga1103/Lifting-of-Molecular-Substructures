@@ -20,10 +20,10 @@
             "name": "debug train",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/train/train.py",
+            "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "justMyCode": false
+            "justMyCode": false,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
