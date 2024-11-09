@@ -14,7 +14,7 @@ import dataset.molhiv
 from dataclasses import dataclass
 
 torch.manual_seed(0)
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda")
 WEIGHT_DTYPE = torch.float32
 X_2_WIDTH = 5
 
@@ -169,12 +169,16 @@ model = model.to(DEVICE)
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
+
+# TODO: remove this
+molhiv_data = list(filter(lambda graph: len(graph.data.cell_complex.cells) != 0, molhiv_data))
+
 # Split dataset
 train_data, test_data = train_test_split(molhiv_data, test_size=0.2, shuffle=True)
 
 # Training loop
-test_interval = 2
-num_epochs = 10
+test_interval = 10
+num_epochs = 1000
 for epoch_i in range(1, num_epochs + 1):
     epoch_loss = []
     model.train()
@@ -218,8 +222,6 @@ model = model.to(DEVICE)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 # Training loop with attention
-test_interval = 2
-num_epochs = 10
 for epoch_i in range(1, num_epochs + 1):
     epoch_loss = []
     model.train()
