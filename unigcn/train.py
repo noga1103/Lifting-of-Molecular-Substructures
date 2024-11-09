@@ -188,7 +188,7 @@ for epoch_i in range(1, num_epochs + 1):
         x_1 = graph.x_1
         incidence_2_t = graph.incidence_2_t
         adjacency_0 = graph.adjacency_0
-        y = torch.tensor([graph.data.solubility], dtype=WEIGHT_DTYPE).to(DEVICE)
+        y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
 
         optimizer.zero_grad()
         y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
@@ -208,7 +208,7 @@ for epoch_i in range(1, num_epochs + 1):
                 x_1 = graph.x_1
                 incidence_2_t = graph.incidence_2_t
                 adjacency_0 = graph.adjacency_0
-                y = torch.tensor([graph.data.solubility], dtype=WEIGHT_DTYPE).to(DEVICE)
+                y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
 
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
@@ -239,7 +239,7 @@ for epoch_i in range(1, num_epochs + 1):
         x_1 = graph.x_1
         incidence_2_t = graph.incidence_2_t
         adjacency_0 = graph.adjacency_0
-        y = torch.tensor([graph.data.solubility], dtype=WEIGHT_DTYPE).to(DEVICE)
+        y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
 
         optimizer.zero_grad()
         y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
@@ -259,7 +259,7 @@ for epoch_i in range(1, num_epochs + 1):
                 x_1 = graph.x_1
                 incidence_2_t = graph.incidence_2_t
                 adjacency_0 = graph.adjacency_0
-                y = torch.tensor([graph.data.solubility], dtype=WEIGHT_DTYPE).to(DEVICE)
+                y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
 
                 y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
                 test_loss = loss_fn(y_hat, y)
