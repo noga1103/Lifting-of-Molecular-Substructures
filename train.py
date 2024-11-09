@@ -15,7 +15,7 @@ model = model.to(DEVICE)
 
 
 full_data = load_molhiv_data()
-map(lambda x: model.add_graph_matrices(x), full_data)
+[model.add_graph_matrices(graph) for graph in full_data]
 
 # Loss function and optimizer
 loss_fn = torch.nn.MSELoss()
@@ -27,19 +27,14 @@ train_data, test_data = train_test_split(full_data, test_size=0.2, shuffle=True)
 
 # Training loop
 test_interval = 10
-num_epochs = 1000
+num_epochs = 100
 for epoch_i in range(1, num_epochs + 1):
     epoch_loss = []
     model.train()
     for graph in train_data:
-        x_0 = graph.x_0
-        x_1 = graph.x_1
-        incidence_2_t = graph.graph_matrices["incidence_2_t"]
-        adjacency_0 = graph.graph_matrices["adjacency_0"]
-        y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
-
+        y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
         optimizer.zero_grad()
-        y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
+        y_hat = model(graph)
         loss = loss_fn(y_hat, y)
         loss.backward()
         optimizer.step()
@@ -52,13 +47,8 @@ for epoch_i in range(1, num_epochs + 1):
             train_mean_loss = np.mean(epoch_loss)
             test_losses = []
             for graph in test_data:
-                x_0 = graph.x_0
-                x_1 = graph.x_1
-                incidence_2_t = graph.incidence_2_t
-                adjacency_0 = graph.adjacency_0
-                y = torch.tensor(graph.data.solubility, dtype=WEIGHT_DTYPE).to(DEVICE)
-
-                y_hat = model(x_0, x_1, adjacency_0, incidence_2_t)
+                y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
+                y_hat = model(graph)
                 test_loss = loss_fn(y_hat, y)
                 y_true_list.append(y.item())
                 y_pred_list.append(y_hat.item())
