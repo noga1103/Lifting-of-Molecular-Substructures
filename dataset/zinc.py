@@ -1,15 +1,12 @@
-import math
-import os
-import pickle
+import dill as pickle
 
 from dataclasses import dataclass
 
 import toponetx
 
-from smiles_converter import smiles_to_complex
 
 # Chunk the pkl files b/c github has a 100MB limit on filesizes.
-NUM_CHUNKS = 5
+NUM_CHUNKS = 12
 PKL_FILE_BASE = "dataset/pkl_data/zinc"
 CSV_FILE = "dataset/csv_data/250k_rndm_zinc_drugs_clean_3.csv"
 
@@ -20,7 +17,8 @@ class ZincData:
     log_p: float  # water–octanol partition coefficient
     qed: float  # Quantitative Estimation of Drug-likeness
     sas: float  # synthetic accessibility score
-    complex: toponetx.CombinatorialComplex
+    combinatorial_complex: toponetx.CombinatorialComplex
+    cell_complex: toponetx.CellComplex
 
 
 DATA = None
@@ -36,6 +34,7 @@ def get_data():
 
 def save_pkl():
     import pandas
+    from dataset.smiles_converter import smiles_to_combinatorial_complex, smiles_to_cell_complex
 
     csv = pandas.read_csv(CSV_FILE)
     result = []
@@ -44,8 +43,18 @@ def save_pkl():
         log_p = row["logP"]
         qed = row["qed"]
         sas = row["SAS"]
-        complex = smiles_to_complex(smiles)
-        result.append(ZincData(smiles=smiles, log_p=log_p, qed=qed, sas=sas, complex=complex))
+        combinatorial_complex = smiles_to_combinatorial_complex(smiles)
+        cell_complex = smiles_to_cell_complex(smiles)
+        result.append(
+            ZincData(
+                smiles=smiles,
+                log_p=log_p,
+                qed=qed,
+                sas=sas,
+                combinatorial_complex=combinatorial_complex,
+                cell_complex=cell_complex,
+            )
+        )
 
     save_pkl_chunks(result)
 
@@ -53,6 +62,8 @@ def save_pkl():
 
 
 def save_pkl_chunks(data, base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
+    import math
+
     chunk_size = math.ceil(len(data) / num_chunks)
 
     # Iterate over each chunk and save it as a separate pickle file
@@ -87,4 +98,16 @@ def read_pkl(base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
 if __name__ == "__main__":
     save_pkl()
     print(len(get_data()))
-    print(get_data()[0])
+    print(get_data()[0].combinatorial_complex)
+    print("======================")
+    print(get_data()[0].combinatorial_complex.get_node_attributes("atomic_symbol"))
+    print("======================")
+    print(get_data()[0].combinatorial_complex.get_cell_attributes("bond_type"))
+    print("======================")
+    print(get_data()[0].cell_complex)
+    print("======================")
+    print(get_data()[0].cell_complex.get_node_attributes("atomic_symbol"))
+    print("======================")
+    print(get_data()[0].cell_complex.get_cell_attributes(rank=1, name="bond_type"))
+    print("======================")
+    print(len(get_data()[0].cell_complex.get_cell_attributes(rank=1, name="bond_type")))
