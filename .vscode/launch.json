@@ -17,10 +17,10 @@
             "justMyCode": false
         },
         {
-            "name": "debug unigcn",
+            "name": "debug train",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/unigcn/train.py",
+            "program": "${workspaceFolder}/train/train.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "justMyCode": false
