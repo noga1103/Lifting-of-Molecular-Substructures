@@ -20,36 +20,36 @@ class CANModel(torch.nn.Module):
         # CAN layers with correct parameters
         self.layers = torch.nn.ModuleList([
             CANLayer(
-                in_channels=in_channels_1,  # Input channels
-                out_channels=in_channels_1,  # Output channels
-                heads=4,  # Number of attention heads
-                concat=True,  # Whether to concatenate attention heads
-                dropout=0.1,  # Dropout rate
-                attention_dropout=0.1  # Attention dropout rate
+                in_channels=in_channels_1,
+                out_channels=in_channels_1,
+                heads=4,
+                concat=True,
+                dropout=0.1,
+                attention_dropout=0.1
             )
             for _ in range(n_layers)
         ])
         
         # Multi-head lift layers for dimension interactions
         self.lift_0_to_1 = MultiHeadLiftLayer(
-            in_channels=in_channels_0,
-            out_channels=in_channels_1,
-            number_of_heads=4
+            channels_0=in_channels_0,
+            channels_1=in_channels_1,
+            heads=4
         )
         self.lift_1_to_2 = MultiHeadLiftLayer(
-            in_channels=in_channels_1,
-            out_channels=in_channels_2,
-            number_of_heads=4
+            channels_0=in_channels_1,
+            channels_1=in_channels_2,
+            heads=4
         )
         
         # Pool layers for aggregating information
         self.pool_2_to_1 = PoolLayer(
-            in_channels=in_channels_2,
-            out_channels=in_channels_1
+            channels_1=in_channels_2,
+            channels_0=in_channels_1
         )
         self.pool_1_to_0 = PoolLayer(
-            in_channels=in_channels_1,
-            out_channels=in_channels_0
+            channels_1=in_channels_1,
+            channels_0=in_channels_0
         )
         
         # Output linear layers
@@ -75,12 +75,12 @@ class CANModel(torch.nn.Module):
         # Process through CAN layers
         for layer in self.layers:
             # Up dimension
-            x_0_up = self.lift_0_to_1(x_0, adjacency_0)
-            x_1_up = self.lift_1_to_2(x_1, incidence_2_t)
+            x_0_up = self.lift_0_to_1(x_0=x_0, x_1=None, boundary_1=adjacency_0)
+            x_1_up = self.lift_1_to_2(x_0=x_1, x_1=None, boundary_1=incidence_2_t)
             
             # Down dimension
-            x_2_down = self.pool_2_to_1(x_2, incidence_2_t.t())
-            x_1_down = self.pool_1_to_0(x_1, adjacency_0.t())
+            x_2_down = self.pool_2_to_1(x_1=x_2, boundary_1=incidence_2_t.t())
+            x_1_down = self.pool_1_to_0(x_1=x_1, boundary_1=adjacency_0.t())
             
             # CAN layer processing - note we primarily focus on x_1 since that's what CANLayer processes
             x_1 = layer(x=x_1 + x_0_up + x_2_down, edge_index=adjacency_0)
