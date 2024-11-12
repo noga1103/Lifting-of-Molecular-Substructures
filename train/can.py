@@ -18,12 +18,19 @@ class CANModel(torch.nn.Module):
         self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
         self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
         
+        # Adjust dimensions to match number of heads
+        n_heads = 4
+        head_dim = in_channels_1 // n_heads
+        
         # Lift layer for node to edge features
         self.lift_0_to_1 = MultiHeadLiftLayer(
-            in_channels_0=in_channels_0,
-            heads=in_channels_0,
+            in_channels_0=head_dim,  # Reduced to match head dimension
+            heads=n_heads,
             signal_lift_dropout=0.5
         )
+        
+        # Pre-lift transformation to match dimensions
+        self.pre_lift_transform = torch.nn.Linear(in_channels_0, head_dim * n_heads)
         
         # CAN layers
         self.layers = torch.nn.ModuleList()
@@ -31,9 +38,9 @@ class CANModel(torch.nn.Module):
         # First layer
         self.layers.append(
             CANLayer(
-                in_channels=in_channels_1 + in_channels_0,  # Combined dimension after lift
+                in_channels=in_channels_1,  # Same dimension as input
                 out_channels=in_channels_1,
-                heads=4,
+                heads=n_heads,
                 concat=True,
                 skip_connection=True,
                 att_activation=torch.nn.LeakyReLU(0.2),
@@ -48,7 +55,7 @@ class CANModel(torch.nn.Module):
                 CANLayer(
                     in_channels=in_channels_1,
                     out_channels=in_channels_1,
-                    heads=4,
+                    heads=n_heads,
                     concat=True,
                     skip_connection=True,
                     att_activation=torch.nn.LeakyReLU(0.2),
@@ -70,22 +77,43 @@ class CANModel(torch.nn.Module):
         x_0 = self.lin_0_input(x_0)
         x_1 = self.lin_1_input(x_1)
         
+        # Transform node features to match lift layer dimensions
+        x_0_transformed = self.pre_lift_transform(x_0)
+        
         # Create upper and lower Laplacians
         down_laplacian_1 = adjacency_0.to_sparse()
         up_laplacian_1 = incidence_2_t.to_sparse()
         
-        # Lift node features to edge level
-        x_1_combined = self.lift_0_to_1(x_0, adjacency_0.to_sparse(), x_1)
+        # Reshape x_1 to match the expected dimensions
+        batch_size = x_1.size(0)
+        n_heads = 4
+        head_dim = x_1.size(1) // n_heads
+        x_1_reshaped = x_1.view(batch_size, n_heads, head_dim)
         
-        # Process through CAN layers
-        for layer in self.layers:
-            x_1_combined = layer(x_1_combined, down_laplacian_1, up_laplacian_1)
-            x_1_combined = F.dropout(x_1_combined, p=0.5, training=self.training)
+        # Lift node features to edge level
+        try:
+            x_1_lifted = self.lift_0_to_1(x_0_transformed.view(batch_size, n_heads, -1), 
+                                        down_laplacian_1, 
+                                        x_1_reshaped)
+            
+            # Process through CAN layers
+            x_1_current = x_1_lifted
+            for layer in self.layers:
+                x_1_current = layer(x_1_current, down_laplacian_1, up_laplacian_1)
+                x_1_current = F.dropout(x_1_current, p=0.5, training=self.training)
+        
+        except RuntimeError as e:
+            print(f"Error in forward pass. Shapes:")
+            print(f"x_0_transformed shape: {x_0_transformed.shape}")
+            print(f"x_1 shape: {x_1.shape}")
+            print(f"adjacency_0 shape: {adjacency_0.shape}")
+            print(f"incidence_2_t shape: {incidence_2_t.shape}")
+            raise e
         
         # Final linear transformations
         x_0_out = self.lin_0(x_0)
-        x_1_out = self.lin_1(x_1_combined)
-        x_2_out = self.lin_2(torch.zeros(incidence_2_t.shape[0], in_channels_2, dtype=WEIGHT_DTYPE, device=DEVICE))
+        x_1_out = self.lin_1(x_1_current)
+        x_2_out = self.lin_2(torch.zeros(incidence_2_t.shape[0], 1, dtype=WEIGHT_DTYPE, device=DEVICE))
         
         # Calculate means and handle NaN values
         two_dimensional_cells_mean = torch.nanmean(x_2_out, dim=0)
