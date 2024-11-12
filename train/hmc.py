@@ -50,7 +50,7 @@ class HMCLayer(torch.nn.Module):
         return x_0_out, x_1_out, x_2_out
 
 class HMCModel(torch.nn.Module):
-    """Simplified Hierarchical Message-passing Classifier Model that follows CCXN structure."""
+    """ Hierarchical Message-passing Classifier Model that follows CCXN structure."""
     
     def __init__(
         self,
@@ -66,7 +66,7 @@ class HMCModel(torch.nn.Module):
         
         # HMC layers
         self.layers = torch.nn.ModuleList([
-            SimplifiedHMCLayer(in_channels_0, in_channels_1, in_channels_2)
+            HMCLayer(in_channels_0, in_channels_1, in_channels_2)
             for _ in range(n_layers)
         ])
         
