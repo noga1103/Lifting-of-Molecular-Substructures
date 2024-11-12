@@ -1,121 +1,65 @@
-from topomodelx.utils.sparse import from_sparse
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split
+import numpy as np
 import torch
-import torch.nn.functional as F
-from train.train_utils import DEVICE, ONE_OUT_0_ENCODING_SIZE, ONE_OUT_1_ENCODING_SIZE, WEIGHT_DTYPE
+from train.ccxn import CCXNModel
+from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
+import json
+from train.hmc import HMCModel
 
-class SimplifiedHMCLayer(torch.nn.Module):
-    """Simplified version of the HMC layer that maintains hierarchical message passing
-    between different dimensional cells (0D, 1D, 2D) without complex attention mechanisms."""
-    
-    def __init__(self, in_channels_0, in_channels_1, in_channels_2):
-        super().__init__()
-        # Level 1 transforms
-        self.level1_0to0 = torch.nn.Linear(in_channels_0, in_channels_0)  # vertex to vertex
-        self.level1_1to0 = torch.nn.Linear(in_channels_1, in_channels_0)  # edge to vertex
-        self.level1_1to1 = torch.nn.Linear(in_channels_1, in_channels_1)  # edge to edge
-        self.level1_2to1 = torch.nn.Linear(in_channels_2, in_channels_1)  # face to edge
-        
-        # Level 2 transforms
-        self.level2_0to0 = torch.nn.Linear(in_channels_0, in_channels_0)  # vertex to vertex
-        self.level2_0to1 = torch.nn.Linear(in_channels_0, in_channels_1)  # vertex to edge
-        self.level2_1to1 = torch.nn.Linear(in_channels_1, in_channels_1)  # edge to edge
-        self.level2_1to2 = torch.nn.Linear(in_channels_1, in_channels_2)  # edge to face
-        self.level2_2to2 = torch.nn.Linear(in_channels_2, in_channels_2)  # face to face
+# Load config
+with open('config.json', 'r') as f:
+    config = json.load(f)
 
-    def forward(self, x_0, x_1, x_2, adjacency_0, incidence_2_t):
-        # Level 1: First message passing step
-        # Update 0-cells (vertices)
-        x_0_level1 = F.relu(self.level1_0to0(x_0) @ adjacency_0 + 
-                           self.level1_1to0(x_1) @ incidence_2_t.T)
-        
-        # Update 1-cells (edges)
-        x_1_level1 = F.relu(self.level1_1to1(x_1) + 
-                           self.level1_2to1(x_2) @ incidence_2_t)
-        
-        # Update 2-cells (faces) - receives messages only from edges
-        x_2_level1 = x_2  # Placeholder for level 1 face update
-        
-        # Level 2: Second message passing step
-        # Update 0-cells (vertices)
-        x_0_out = F.relu(self.level2_0to0(x_0_level1) @ adjacency_0)
-        
-        # Update 1-cells (edges)
-        x_1_out = F.relu(self.level2_0to1(x_0_level1) @ incidence_2_t.T + 
-                        self.level2_1to1(x_1_level1))
-        
-        # Update 2-cells (faces)
-        x_2_out = F.relu(self.level2_1to2(x_1_level1) @ incidence_2_t + 
-                        self.level2_2to2(x_2_level1))
-        
-        return x_0_out, x_1_out, x_2_out
+torch.manual_seed(0)
+HIDDEN_DIMENSIONS = config['hidden_dimensions']
 
-class HMCModel(torch.nn.Module):
-    """Simplified Hierarchical Message-passing Classifier Model that follows CCXN structure."""
-    
-    def __init__(
-        self,
-        in_channels_0,
-        in_channels_1,
-        in_channels_2,
-        n_layers=2,
-    ):
-        super().__init__()
-        # Input projections
-        self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
-        self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
-        
-        # HMC layers
-        self.layers = torch.nn.ModuleList([
-            SimplifiedHMCLayer(in_channels_0, in_channels_1, in_channels_2)
-            for _ in range(n_layers)
-        ])
-        
-        # Output projections
-        self.lin_0 = torch.nn.Linear(in_channels_0, 1)
-        self.lin_1 = torch.nn.Linear(in_channels_1, 1)
-        self.lin_2 = torch.nn.Linear(in_channels_2, 1)
-        
-    def forward(self, graph):
-        # Get initial features and matrices
-        x_0, x_1 = graph.x_0, graph.x_1
-        adjacency_0 = graph.graph_matrices["adjacency_0"]
-        incidence_2_t = graph.graph_matrices["incidence_2_t"]
-        
-        # Initial projections
-        x_0 = self.lin_0_input(x_0)
-        x_1 = self.lin_1_input(x_1)
-        x_2 = torch.zeros((incidence_2_t.size(0), x_0.size(-1)), 
-                         device=x_0.device)  # Initialize 2-cell features
-        
-        # Apply HMC layers
-        for layer in self.layers:
-            x_0, x_1, x_2 = layer(x_0, x_1, x_2, adjacency_0, incidence_2_t)
-        
-        # Final projections
-        x_0 = self.lin_0(x_0)
-        x_1 = self.lin_1(x_1)
-        x_2 = self.lin_2(x_2)
-        
-        # Global pooling with nanmean (following CCXN structure)
-        two_dimensional_cells_mean = torch.nanmean(x_2, dim=0)
-        two_dimensional_cells_mean[torch.isnan(two_dimensional_cells_mean)] = 0
-        
-        one_dimensional_cells_mean = torch.nanmean(x_1, dim=0)
-        one_dimensional_cells_mean[torch.isnan(one_dimensional_cells_mean)] = 0
-        
-        zero_dimensional_cells_mean = torch.nanmean(x_0, dim=0)
-        zero_dimensional_cells_mean[torch.isnan(zero_dimensional_cells_mean)] = 0
-        
-        return two_dimensional_cells_mean + one_dimensional_cells_mean + zero_dimensional_cells_mean
-    
-    @staticmethod
-    def add_graph_matrices(enhanced_graph):
-        """Store required matrices for the model, following CCXN structure."""
-        incidence_2_t = enhanced_graph.cell_complex.incidence_matrix(rank=2).T
-        adjacency_0 = enhanced_graph.cell_complex.adjacency_matrix(rank=0)
-        
-        incidence_2_t = from_sparse(incidence_2_t).to(WEIGHT_DTYPE).to(DEVICE)
-        adjacency_0 = from_sparse(adjacency_0).to(WEIGHT_DTYPE).to(DEVICE)
-        
-        enhanced_graph.graph_matrices["incidence_2_t"] = incidence_2_t
-        enhanced_graph.graph_matrices["adjacency_0"] = adjacency_0
+# Get model class based on config
+if config['model'] == 'CCXNModel':
+    model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+elif config['model'] == 'HMCModel':  # Add this condition
+    model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+else:
+    raise ValueError("Unknown model: {}".format(config['model']))
+
+model = model.to(DEVICE)
+full_data = load_molhiv_data()
+[model.add_graph_matrices(graph) for graph in full_data]
+
+# Rest of your code remains exactly the same
+loss_fn = torch.nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=config['learning_rate'])
+# Split dataset
+train_data, test_data = train_test_split(full_data, test_size=config['test_size'], shuffle=True)
+# Training loop
+test_interval = config['test_interval']
+num_epochs = config['num_epochs']
+for epoch_i in range(1, num_epochs + 1):
+    epoch_loss = []
+    model.train()
+    for graph in train_data:
+        y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
+        optimizer.zero_grad()
+        y_hat = model(graph)
+        loss = loss_fn(y_hat, y)
+        loss.backward()
+        optimizer.step()
+        epoch_loss.append(loss.item())
+    if epoch_i % test_interval == 0:
+        model.eval()
+        y_true_list, y_pred_list = [], []
+        with torch.no_grad():
+            train_mean_loss = np.mean(epoch_loss)
+            test_losses = []
+            for graph in test_data:
+                y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
+                y_hat = model(graph)
+                test_loss = loss_fn(y_hat, y)
+                y_true_list.append(y.item())
+                y_pred_list.append(y_hat.item())
+                test_losses.append(test_loss.item())
+            test_mean_loss = np.mean(test_losses)
+            r2 = r2_score(y_true_list, y_pred_list)
+            mae = mean_absolute_error(y_true_list, y_pred_list)
+            rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
+            print("Epoch:%d, Train Loss: %.4f, Test Loss: %.4f, R2: %.4f, MAE: %.4f, RMSE: %.4f" % (epoch_i, train_mean_loss, test_mean_loss, r2, mae, rmse))
