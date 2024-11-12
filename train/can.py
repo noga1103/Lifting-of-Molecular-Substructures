@@ -14,15 +14,20 @@ class CANModel(torch.nn.Module):
     ):
         super().__init__()
         
+        # Store dimensions
+        self.in_channels_0 = in_channels_0
+        self.in_channels_1 = in_channels_1
+        self.in_channels_2 = in_channels_2
+        
         # Input linear layers
-        self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
-        self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
+        self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, self.in_channels_0)
+        self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, self.in_channels_1)
         
         # CAN layers with default parameters that match the original implementation
         self.layers = torch.nn.ModuleList([
             CANLayer(
-                in_channels=in_channels_1,
-                out_channels=in_channels_1,
+                in_channels=self.in_channels_1,
+                out_channels=self.in_channels_1,
                 heads=4,
                 dropout=0.1,
                 concat=True,
@@ -37,9 +42,9 @@ class CANModel(torch.nn.Module):
         ])
         
         # Output linear layers
-        self.lin_0 = torch.nn.Linear(in_channels_0, 1)
-        self.lin_1 = torch.nn.Linear(in_channels_1, 1)
-        self.lin_2 = torch.nn.Linear(in_channels_2, 1)
+        self.lin_0 = torch.nn.Linear(self.in_channels_0, 1)
+        self.lin_1 = torch.nn.Linear(self.in_channels_1, 1)
+        self.lin_2 = torch.nn.Linear(self.in_channels_2, 1)
 
     def forward(self, graph):
         x_0, x_1 = graph.x_0, graph.x_1
@@ -102,7 +107,7 @@ class CANModel(torch.nn.Module):
             # Final linear transformations
             x_0_out = self.lin_0(x_0)
             x_1_out = self.lin_1(x_1_current)
-            x_2_out = self.lin_2(torch.zeros(incidence_2_t.shape[0], in_channels_2, dtype=WEIGHT_DTYPE, device=DEVICE))
+            x_2_out = self.lin_2(torch.zeros(incidence_2_t.shape[0], self.in_channels_2, dtype=WEIGHT_DTYPE, device=DEVICE))
             
             # Calculate means and handle NaN values
             two_dimensional_cells_mean = torch.nanmean(x_2_out, dim=0)
