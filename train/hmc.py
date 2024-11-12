@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from train.train_utils import DEVICE, ONE_OUT_0_ENCODING_SIZE, ONE_OUT_1_ENCODING_SIZE, WEIGHT_DTYPE
 
-class SimplifiedHMCLayer(torch.nn.Module):
-    """Simplified version of the HMC layer with dense matrix operations."""
+class HMCLayer(torch.nn.Module):
+    """HMC layer implementation."""
     
     def __init__(self, in_channels_0, in_channels_1, in_channels_2):
         super().__init__()
@@ -23,9 +23,9 @@ class SimplifiedHMCLayer(torch.nn.Module):
 
     def forward(self, x_0, x_1, x_2, adjacency_0, incidence_2_t):
         # Convert sparse matrices to dense if they're not already
-        if torch.is_sparse(adjacency_0):
+        if adjacency_0.is_sparse_csr:
             adjacency_0 = adjacency_0.to_dense()
-        if torch.is_sparse(incidence_2_t):
+        if incidence_2_t.is_sparse_csr:
             incidence_2_t = incidence_2_t.to_dense()
             
         # Level 1: First message passing step
@@ -69,7 +69,7 @@ class SimplifiedHMCLayer(torch.nn.Module):
         return x_0_out, x_1_out, x_2_out
 
 class HMCModel(torch.nn.Module):
-    """Simplified Hierarchical Message-passing Classifier Model."""
+    """Hierarchical Message-passing Classifier Model."""
     
     def __init__(
         self,
@@ -83,7 +83,7 @@ class HMCModel(torch.nn.Module):
         self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
         
         self.layers = torch.nn.ModuleList([
-            SimplifiedHMCLayer(in_channels_0, in_channels_1, in_channels_2)
+            HMCLayer(in_channels_0, in_channels_1, in_channels_2)
             for _ in range(n_layers)
         ])
         
