@@ -17,7 +17,7 @@ HIDDEN_DIMENSIONS = config['hidden_dimensions']
 if config['model'] == 'CCXNModel':
     model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 else:
-    raise ValueError(f"Unknown model: {config['model']}")
+    raise ValueError("Unknown model: {}".format(config['model']))
 
 model = model.to(DEVICE)
 full_data = load_molhiv_data()
