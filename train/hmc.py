@@ -24,35 +24,43 @@ class SimplifiedHMCLayer(torch.nn.Module):
 
     def forward(self, x_0, x_1, x_2, adjacency_0, incidence_2_t):
         # Level 1: First message passing step
+        # Messages from 0-cells to 0-cells
+        x_0_from_0 = self.level1_0to0(x_0)  # [20, 20]
+        
+        # Messages from 1-cells to 0-cells
+        x_1_to_0 = self.level1_1to0(x_1)  # [27, 20]
+        
         # Update 0-cells (vertices)
         x_0_level1 = F.relu(
-            adjacency_0 @ self.level1_0to0(x_0) +  # Changed order here
-            incidence_2_t.T @ self.level1_1to0(x_1)  # Changed order here
+            adjacency_0 @ x_0_from_0 +  # [20, 20] @ [20, 20] -> [20, 20]
+            (incidence_2_t @ x_1_to_0).transpose(-2, -1)  # [3, 27] @ [27, 20] -> [3, 20] -> [20, 3]
         )
         
         # Update 1-cells (edges)
         x_1_level1 = F.relu(
-            self.level1_1to1(x_1) + 
-            incidence_2_t @ self.level1_2to1(x_2)  # Changed order here
+            self.level1_1to1(x_1) +  # [27, 20]
+            (self.level1_2to1(x_2) @ incidence_2_t).transpose(-2, -1)  # [3, 20] @ [3, 27] -> [20, 27]
         )
         
         # Update 2-cells (faces)
-        x_2_level1 = x_2
+        x_2_level1 = x_2  # [3, 20]
         
         # Level 2: Second message passing step
         # Update 0-cells (vertices)
-        x_0_out = F.relu(adjacency_0 @ self.level2_0to0(x_0_level1))  # Changed order
+        x_0_out = F.relu(
+            adjacency_0 @ self.level2_0to0(x_0_level1)  # [20, 20] @ [20, 20] -> [20, 20]
+        )
         
         # Update 1-cells (edges)
         x_1_out = F.relu(
-            incidence_2_t.T @ self.level2_0to1(x_0_level1) +  # Changed order
-            self.level2_1to1(x_1_level1)
+            (incidence_2_t @ self.level2_0to1(x_0_level1)).transpose(-2, -1) +  # [3, 27] @ [27, 20] -> [3, 20] -> [20, 3]
+            self.level2_1to1(x_1_level1)  # [27, 20]
         )
         
         # Update 2-cells (faces)
         x_2_out = F.relu(
-            incidence_2_t @ self.level2_1to2(x_1_level1) +  # Changed order
-            self.level2_2to2(x_2_level1)
+            incidence_2_t @ self.level2_1to2(x_1_level1) +  # [3, 27] @ [27, 20] -> [3, 20]
+            self.level2_2to2(x_2_level1)  # [3, 20]
         )
         
         return x_0_out, x_1_out, x_2_out
