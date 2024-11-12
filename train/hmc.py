@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from train.train_utils import DEVICE, ONE_OUT_0_ENCODING_SIZE, ONE_OUT_1_ENCODING_SIZE, WEIGHT_DTYPE
 
 class SimplifiedHMCLayer(torch.nn.Module):
-    """Simplified version of the HMC layer with forced dimension matching."""
+    """Simplified version of the HMC layer with dense matrix operations."""
     
     def __init__(self, in_channels_0, in_channels_1, in_channels_2):
         super().__init__()
@@ -22,62 +22,54 @@ class SimplifiedHMCLayer(torch.nn.Module):
         self.level2_2to2 = torch.nn.Linear(in_channels_2, in_channels_2)
 
     def forward(self, x_0, x_1, x_2, adjacency_0, incidence_2_t):
-        batch_size = 1  # Since we're processing one graph at a time
-        
+        # Convert sparse matrices to dense if they're not already
+        if torch.is_sparse(adjacency_0):
+            adjacency_0 = adjacency_0.to_dense()
+        if torch.is_sparse(incidence_2_t):
+            incidence_2_t = incidence_2_t.to_dense()
+            
         # Level 1: First message passing step
         # Messages to 0-cells (vertices)
         x_0_from_0 = self.level1_0to0(x_0)
         x_0_from_1 = self.level1_1to0(x_1)
         
-        # Ensure dimensions match for matrix multiplication
-        padded_incidence_2t_T = torch.nn.functional.pad(
-            incidence_2_t.T,
-            (0, max(0, x_0_from_1.size(0) - incidence_2_t.T.size(1)),
-             0, max(0, x_0_from_1.size(1) - incidence_2_t.T.size(0)))
+        # Update 0-cells
+        x_0_level1 = F.relu(
+            x_0_from_0 @ adjacency_0 + 
+            x_0_from_1 @ incidence_2_t.T
         )
-        x_0_level1 = F.relu(x_0_from_0 @ adjacency_0 + x_0_from_1 @ padded_incidence_2t_T)
         
-        # Messages to 1-cells (edges)
+        # Update 1-cells (edges)
         x_1_from_1 = self.level1_1to1(x_1)
         x_1_from_2 = self.level1_2to1(x_2)
-        
-        # Ensure dimensions match
-        padded_incidence_2t = torch.nn.functional.pad(
-            incidence_2_t,
-            (0, max(0, x_1_from_2.size(0) - incidence_2_t.size(1)),
-             0, max(0, x_1_from_2.size(1) - incidence_2_t.size(0)))
+        x_1_level1 = F.relu(
+            x_1_from_1 + 
+            x_1_from_2 @ incidence_2_t
         )
-        x_1_level1 = F.relu(x_1_from_1 + x_1_from_2 @ padded_incidence_2t)
         
         # Update 2-cells (faces)
         x_2_level1 = x_2
         
         # Level 2: Second message passing step
-        # Update 0-cells (vertices)
+        # Update 0-cells
         x_0_out = F.relu(self.level2_0to0(x_0_level1) @ adjacency_0)
         
-        # Update 1-cells (edges)
-        padded_incidence_2t_T_level2 = torch.nn.functional.pad(
-            incidence_2_t.T,
-            (0, max(0, x_0_level1.size(0) - incidence_2_t.T.size(1)),
-             0, max(0, x_0_level1.size(1) - incidence_2_t.T.size(0)))
+        # Update 1-cells
+        x_1_out = F.relu(
+            self.level2_0to1(x_0_level1) @ incidence_2_t.T +
+            self.level2_1to1(x_1_level1)
         )
-        x_1_msg = self.level2_0to1(x_0_level1) @ padded_incidence_2t_T_level2
-        x_1_out = F.relu(x_1_msg + self.level2_1to1(x_1_level1))
         
-        # Update 2-cells (faces)
-        padded_incidence_2t_level2 = torch.nn.functional.pad(
-            incidence_2_t,
-            (0, max(0, x_1_level1.size(0) - incidence_2_t.size(1)),
-             0, max(0, x_1_level1.size(1) - incidence_2_t.size(0)))
+        # Update 2-cells
+        x_2_out = F.relu(
+            self.level2_1to2(x_1_level1) @ incidence_2_t +
+            self.level2_2to2(x_2_level1)
         )
-        x_2_msg = self.level2_1to2(x_1_level1) @ padded_incidence_2t_level2
-        x_2_out = F.relu(x_2_msg + self.level2_2to2(x_2_level1))
         
         return x_0_out, x_1_out, x_2_out
 
 class HMCModel(torch.nn.Module):
-    """Simplified Hierarchical Message-passing Classifier Model with dimension handling."""
+    """Simplified Hierarchical Message-passing Classifier Model."""
     
     def __init__(
         self,
