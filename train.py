@@ -74,7 +74,7 @@ for epoch_i in range(1, num_epochs + 1):
             mae = mean_absolute_error(y_true_list, y_pred_list)
             rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
             print(
-                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, "
+                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}", 
                 f"R²: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}",
                 flush=True,
             )
