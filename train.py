@@ -5,7 +5,7 @@ import torch
 from train.ccxn import CCXNModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
 import json
-
+from train.hmc import HMCModel
 # Load config
 with open('config.json', 'r') as f:
     config = json.load(f)
