@@ -25,27 +25,35 @@ class SimplifiedHMCLayer(torch.nn.Module):
     def forward(self, x_0, x_1, x_2, adjacency_0, incidence_2_t):
         # Level 1: First message passing step
         # Update 0-cells (vertices)
-        x_0_level1 = F.relu(self.level1_0to0(x_0) @ adjacency_0 + 
-                           self.level1_1to0(x_1) @ incidence_2_t.T)
+        x_0_level1 = F.relu(
+            adjacency_0 @ self.level1_0to0(x_0) +  # Changed order here
+            incidence_2_t.T @ self.level1_1to0(x_1)  # Changed order here
+        )
         
         # Update 1-cells (edges)
-        x_1_level1 = F.relu(self.level1_1to1(x_1) + 
-                           self.level1_2to1(x_2) @ incidence_2_t)
+        x_1_level1 = F.relu(
+            self.level1_1to1(x_1) + 
+            incidence_2_t @ self.level1_2to1(x_2)  # Changed order here
+        )
         
-        # Update 2-cells (faces) - receives messages only from edges
-        x_2_level1 = x_2  # Placeholder for level 1 face update
+        # Update 2-cells (faces)
+        x_2_level1 = x_2
         
         # Level 2: Second message passing step
         # Update 0-cells (vertices)
-        x_0_out = F.relu(self.level2_0to0(x_0_level1) @ adjacency_0)
+        x_0_out = F.relu(adjacency_0 @ self.level2_0to0(x_0_level1))  # Changed order
         
         # Update 1-cells (edges)
-        x_1_out = F.relu(self.level2_0to1(x_0_level1) @ incidence_2_t.T + 
-                        self.level2_1to1(x_1_level1))
+        x_1_out = F.relu(
+            incidence_2_t.T @ self.level2_0to1(x_0_level1) +  # Changed order
+            self.level2_1to1(x_1_level1)
+        )
         
         # Update 2-cells (faces)
-        x_2_out = F.relu(self.level2_1to2(x_1_level1) @ incidence_2_t + 
-                        self.level2_2to2(x_2_level1))
+        x_2_out = F.relu(
+            incidence_2_t @ self.level2_1to2(x_1_level1) +  # Changed order
+            self.level2_2to2(x_2_level1)
+        )
         
         return x_0_out, x_1_out, x_2_out
 
