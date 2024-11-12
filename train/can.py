@@ -17,14 +17,15 @@ class CANModel(torch.nn.Module):
         self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
         self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
         
-        # CAN layers
+        # CAN layers with correct parameters
         self.layers = torch.nn.ModuleList([
             CANLayer(
-                in_channels_0=in_channels_0,
-                in_channels_1=in_channels_1,
-                in_channels_2=in_channels_2,
-                dropout=0.1,
-                number_of_heads=4
+                in_channels=in_channels_1,  # Input channels
+                out_channels=in_channels_1,  # Output channels
+                heads=4,  # Number of attention heads
+                concat=True,  # Whether to concatenate attention heads
+                dropout=0.1,  # Dropout rate
+                attention_dropout=0.1  # Attention dropout rate
             )
             for _ in range(n_layers)
         ])
@@ -81,14 +82,12 @@ class CANModel(torch.nn.Module):
             x_2_down = self.pool_2_to_1(x_2, incidence_2_t.t())
             x_1_down = self.pool_1_to_0(x_1, adjacency_0.t())
             
-            # CAN layer processing
-            x_0, x_1, x_2 = layer(
-                x_0=x_0 + x_1_down,
-                x_1=x_1 + x_0_up + x_2_down,
-                x_2=x_2 + x_1_up,
-                adjacency_0=adjacency_0,
-                incidence_2=incidence_2_t.t()
-            )
+            # CAN layer processing - note we primarily focus on x_1 since that's what CANLayer processes
+            x_1 = layer(x=x_1 + x_0_up + x_2_down, edge_index=adjacency_0)
+            
+            # Update x_0 and x_2 based on the pooled and lifted values
+            x_0 = x_0 + x_1_down
+            x_2 = x_2 + x_1_up
         
         # Final linear transformations
         x_0 = self.lin_0(x_0)
