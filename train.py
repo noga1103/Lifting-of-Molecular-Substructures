@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -73,4 +74,4 @@ for epoch_i in range(1, num_epochs + 1):
             r2 = r2_score(y_true_list, y_pred_list)
             mae = mean_absolute_error(y_true_list, y_pred_list)
             rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
-            print(f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, R²: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}", flush=True)
+            print(f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, R2: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}", flush=True)
