@@ -3,9 +3,9 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
 from train.ccxn import CCXNModel
+from train.can import CANModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
 import json
-from train.hmc import HMCModel
 
 # Load config
 with open('config.json', 'r') as f:
@@ -14,13 +14,13 @@ with open('config.json', 'r') as f:
 torch.manual_seed(0)
 HIDDEN_DIMENSIONS = config['hidden_dimensions']
 
-# Get model class based on config
 if config['model'] == 'CCXNModel':
     model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-elif config['model'] == 'HMCModel':  # Add this condition
-    model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+elif config['model'] == 'CANModel':
+    model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 else:
     raise ValueError("Unknown model: {}".format(config['model']))
+
 
 model = model.to(DEVICE)
 full_data = load_molhiv_data()
