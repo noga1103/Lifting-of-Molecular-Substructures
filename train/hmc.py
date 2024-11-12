@@ -76,31 +76,27 @@ class HMCModel(torch.nn.Module):
         self.lin_2 = torch.nn.Linear(in_channels_2, 1)
         
     def forward(self, graph):
-        print("\nInput shapes:")
-        print(f"x_0: {x_0.shape}")
-        print(f"x_1: {x_1.shape}")
-        print(f"x_2: {x_2.shape}")
-        print(f"adjacency_0: {adjacency_0.shape}")
-        print(f"incidence_2_t: {incidence_2_t.shape}")
-        
-        # Level 1: First message passing step
-        # Update 0-cells (vertices)
-        temp_0 = self.level1_0to0(x_0)
-        temp_1 = self.level1_1to0(x_1)
-        print("\nAfter first linear transformations:")
-        print(f"level1_0to0(x_0): {temp_0.shape}")
-        print(f"level1_1to0(x_1): {temp_1.shape}")
+      
         # Get initial features and matrices
         x_0, x_1 = graph.x_0, graph.x_1
         adjacency_0 = graph.graph_matrices["adjacency_0"]
         incidence_2_t = graph.graph_matrices["incidence_2_t"]
         
+        print("\nInitial shapes:")
+        print(f"x_0: {x_0.shape}")
+        print(f"x_1: {x_1.shape}")
+        print(f"adjacency_0: {adjacency_0.shape}")
+        print(f"incidence_2_t: {incidence_2_t.shape}")
+        
         # Initial projections
         x_0 = self.lin_0_input(x_0)
         x_1 = self.lin_1_input(x_1)
-        x_2 = torch.zeros((incidence_2_t.size(0), x_0.size(-1)), 
-                         device=x_0.device)  # Initialize 2-cell features
+        x_2 = torch.zeros((incidence_2_t.size(0), x_0.size(-1)), device=x_0.device)
         
+        print("\nAfter initial projections:")
+        print(f"x_0: {x_0.shape}")
+        print(f"x_1: {x_1.shape}")
+        print(f"x_2: {x_2.shape}")
         # Apply HMC layers
         for layer in self.layers:
             x_0, x_1, x_2 = layer(x_0, x_1, x_2, adjacency_0, incidence_2_t)
