@@ -1,0 +1,16 @@
+{
+    "model": {
+        "class": "CCXNModel",
+        "hidden_dimensions": 20,
+        "n_layers": 8
+    },
+    "training": {
+        "learning_rate": 0.01,
+        "num_epochs": 100,
+        "test_interval": 10,
+        "test_size": 0.2
+    },
+    "device": "cuda",
+    "weight_dtype": "float32",
+    "random_seed": 0
+}
