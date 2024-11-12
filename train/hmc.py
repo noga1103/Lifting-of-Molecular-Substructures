@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from train.train_utils import DEVICE, ONE_OUT_0_ENCODING_SIZE, ONE_OUT_1_ENCODING_SIZE, WEIGHT_DTYPE
 
-class HMCLayer(torch.nn.Module):
-    """ version of the HMC layer with forced dimension matching."""
+class SimplifiedHMCLayer(torch.nn.Module):
+    """Simplified version of the HMC layer with forced dimension matching."""
     
     def __init__(self, in_channels_0, in_channels_1, in_channels_2):
         super().__init__()
@@ -30,24 +30,24 @@ class HMCLayer(torch.nn.Module):
         x_0_from_1 = self.level1_1to0(x_1)
         
         # Ensure dimensions match for matrix multiplication
-        x_0_level1 = F.relu(x_0_from_0 @ adjacency_0 + 
-                           x_0_from_1 @ torch.nn.functional.pad(
-                               incidence_2_t.T,
-                               (0, max(0, x_0_from_1.size(0) - incidence_2_t.T.size(1)),
-                                0, max(0, x_0_from_1.size(1) - incidence_2_t.T.size(0)))
-                           ))
+        padded_incidence_2t_T = torch.nn.functional.pad(
+            incidence_2_t.T,
+            (0, max(0, x_0_from_1.size(0) - incidence_2_t.T.size(1)),
+             0, max(0, x_0_from_1.size(1) - incidence_2_t.T.size(0)))
+        )
+        x_0_level1 = F.relu(x_0_from_0 @ adjacency_0 + x_0_from_1 @ padded_incidence_2t_T)
         
         # Messages to 1-cells (edges)
         x_1_from_1 = self.level1_1to1(x_1)
         x_1_from_2 = self.level1_2to1(x_2)
         
         # Ensure dimensions match
-        x_1_level1 = F.relu(x_1_from_1 + 
-                           x_1_from_2 @ torch.nn.functional.pad(
-                               incidence_2_t,
-                               (0, max(0, x_1_from_2.size(0) - incidence_2_t.size(1)),
-                                0, max(0, x_1_from_2.size(1) - incidence_2_t.size(0)))
-                           ))
+        padded_incidence_2t = torch.nn.functional.pad(
+            incidence_2_t,
+            (0, max(0, x_1_from_2.size(0) - incidence_2_t.size(1)),
+             0, max(0, x_1_from_2.size(1) - incidence_2_t.size(0)))
+        )
+        x_1_level1 = F.relu(x_1_from_1 + x_1_from_2 @ padded_incidence_2t)
         
         # Update 2-cells (faces)
         x_2_level1 = x_2
@@ -57,29 +57,27 @@ class HMCLayer(torch.nn.Module):
         x_0_out = F.relu(self.level2_0to0(x_0_level1) @ adjacency_0)
         
         # Update 1-cells (edges)
-        x_1_out = F.relu(
-            self.level2_0to1(x_0_level1) @ torch.nn.functional.pad(
-                incidence_2_t.T,
-                (0, max(0, x_0_level1.size(0) - incidence_2_t.T.size(1)),
-                 0, max(0, x_0_level1.size(1) - incidence_2_t.T.size(0))
-            ) +
-            self.level2_1to1(x_1_level1)
+        padded_incidence_2t_T_level2 = torch.nn.functional.pad(
+            incidence_2_t.T,
+            (0, max(0, x_0_level1.size(0) - incidence_2_t.T.size(1)),
+             0, max(0, x_0_level1.size(1) - incidence_2_t.T.size(0)))
         )
+        x_1_msg = self.level2_0to1(x_0_level1) @ padded_incidence_2t_T_level2
+        x_1_out = F.relu(x_1_msg + self.level2_1to1(x_1_level1))
         
         # Update 2-cells (faces)
-        x_2_out = F.relu(
-            self.level2_1to2(x_1_level1) @ torch.nn.functional.pad(
-                incidence_2_t,
-                (0, max(0, x_1_level1.size(0) - incidence_2_t.size(1)),
-                 0, max(0, x_1_level1.size(1) - incidence_2_t.size(0))
-            ) +
-            self.level2_2to2(x_2_level1)
+        padded_incidence_2t_level2 = torch.nn.functional.pad(
+            incidence_2_t,
+            (0, max(0, x_1_level1.size(0) - incidence_2_t.size(1)),
+             0, max(0, x_1_level1.size(1) - incidence_2_t.size(0)))
         )
+        x_2_msg = self.level2_1to2(x_1_level1) @ padded_incidence_2t_level2
+        x_2_out = F.relu(x_2_msg + self.level2_2to2(x_2_level1))
         
         return x_0_out, x_1_out, x_2_out
 
 class HMCModel(torch.nn.Module):
-    """Hierarchical Message-passing Classifier Model with dimension handling."""
+    """Simplified Hierarchical Message-passing Classifier Model with dimension handling."""
     
     def __init__(
         self,
@@ -93,7 +91,7 @@ class HMCModel(torch.nn.Module):
         self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
         
         self.layers = torch.nn.ModuleList([
-            HMCLayer(in_channels_0, in_channels_1, in_channels_2)
+            SimplifiedHMCLayer(in_channels_0, in_channels_1, in_channels_2)
             for _ in range(n_layers)
         ])
         
