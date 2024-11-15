@@ -4,8 +4,10 @@ import numpy as np
 import torch
 from train.ccxn import CCXNModel
 from train.can import CANModel
+from train.cwn import CWNModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
 import json
+
 
 # Load config
 with open('config.json', 'r') as f:
@@ -18,6 +20,8 @@ if config['model'] == 'CCXNModel':
     model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 elif config['model'] == 'CANModel':
     model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+elif config['model'] == 'CWNModel':
+    model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 else:
     raise ValueError("Unknown model: {}".format(config['model']))
 
