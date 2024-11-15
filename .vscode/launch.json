@@ -27,6 +27,9 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
+            "args": [
+                "configs/CAN.json"
+            ]
         },
     ]
 }
