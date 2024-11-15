@@ -81,6 +81,10 @@ def save_pkl_chunks(data, base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
             pickle.dump(chunk, f)
 
 
+def read_small():
+    return read_pkl(base_path=PKL_FILE_BASE, num_chunks=1)
+
+
 def read_pkl(base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
     data = []
 
