@@ -83,9 +83,14 @@ def load_molhiv_data() -> list[EnhancedGraph]:
     return enhance_graphs(datas, lambda x: x.solubility)
 
 
+def load_zinc_data_small() -> list[EnhancedGraph]:
+    datas = dataset.zinc.get_data_small()
+    return enhance_graphs(datas, lambda x: x.reward_penalized_log_p)
+
+
 def load_zinc_data() -> list[EnhancedGraph]:
     datas = dataset.zinc.get_data()
-    return enhance_graphs(datas, lambda x: x.log_P)
+    return enhance_graphs(datas, lambda x: x.reward_penalized_log_p)
 
 
 def generate_x_0(complex: tnx.CellComplex) -> torch.Tensor:

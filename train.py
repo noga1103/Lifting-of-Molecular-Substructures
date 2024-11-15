@@ -2,11 +2,12 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
-from train.ccxn import CCXNModel
 from train.can import CANModel
+from train.ccxn import CCXNModel
 from train.cwn import CWNModel
-from train.hmc import HMCModel
-from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
+
+# from train.hmc import HMCModel
+from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
 import json
 import sys
 import os
@@ -28,16 +29,16 @@ def load_config(config_path):
 
 def initialize_model(config):
     HIDDEN_DIMENSIONS = config["hidden_dimensions"]
-    if config['model'] == 'CCXNModel':
-        model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-    elif config['model'] == 'CANModel':
-        model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-    elif config['model'] == 'HMCModel':
-        model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-    elif config['model'] == 'CWNModel':
-        model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+    if config["model"] == "CCXNModel":
+        model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    elif config["model"] == "CANModel":
+        model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    # elif config["model"] == "HMCModel":
+    #     model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    elif config["model"] == "CWNModel":
+        model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
     else:
-        raise ValueError("Unknown model: {}".format(config['model']))
+        raise ValueError("Unknown model: {}".format(config["model"]))
     model = model.to(DEVICE)
     return model
 
