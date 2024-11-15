@@ -25,6 +25,7 @@ class ZincData:
 
 
 DATA = None
+DATA_SMALL = None
 
 
 def calculate_reward_penalized_log_p(smiles, log_p, sas):
@@ -70,6 +71,14 @@ def get_data():
         DATA = read_pkl()
 
     return DATA
+
+
+def get_data_small():
+    global DATA_SMALL
+    if DATA_SMALL is None:
+        DATA_SMALL = read_pkl()
+
+    return DATA_SMALL
 
 
 def save_pkl():
