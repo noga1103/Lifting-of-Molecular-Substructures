@@ -52,7 +52,7 @@ class EnhancedGraph:
     graph_matrices: dict[str, torch.Tensor] = field(default_factory=dict)
 
 
-def enhance_graphs(data, regression_fn):
+def enhance_graphs(datas, regression_fn):
     enhanced_graphs = []
     for data in datas:
         cell_complex = data.cell_complex
