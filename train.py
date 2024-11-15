@@ -2,32 +2,38 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
-
 from train.ccxn import CCXNModel
+from train.can import CANModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
+import json
+
+# Load config
+with open('config.json', 'r') as f:
+    config = json.load(f)
 
 torch.manual_seed(0)
+HIDDEN_DIMENSIONS = config['hidden_dimensions']
 
-HIDDEN_DIMENSIONS = 20
+if config['model'] == 'CCXNModel':
+    model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+elif config['model'] == 'CANModel':
+    model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+else:
+    raise ValueError("Unknown model: {}".format(config['model']))
 
-model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=8)
+
 model = model.to(DEVICE)
-
-
 full_data = load_molhiv_data()
 [model.add_graph_matrices(graph) for graph in full_data]
 
-# Loss function and optimizer
+# Rest of your code remains exactly the same
 loss_fn = torch.nn.MSELoss()
-
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-
+optimizer = torch.optim.Adam(model.parameters(), lr=config['learning_rate'])
 # Split dataset
-train_data, test_data = train_test_split(full_data, test_size=0.2, shuffle=True)
-
+train_data, test_data = train_test_split(full_data, test_size=config['test_size'], shuffle=True)
 # Training loop
-test_interval = 10
-num_epochs = 100
+test_interval = config['test_interval']
+num_epochs = config['num_epochs']
 for epoch_i in range(1, num_epochs + 1):
     epoch_loss = []
     model.train()
@@ -39,7 +45,6 @@ for epoch_i in range(1, num_epochs + 1):
         loss.backward()
         optimizer.step()
         epoch_loss.append(loss.item())
-
     if epoch_i % test_interval == 0:
         model.eval()
         y_true_list, y_pred_list = [], []
@@ -57,8 +62,4 @@ for epoch_i in range(1, num_epochs + 1):
             r2 = r2_score(y_true_list, y_pred_list)
             mae = mean_absolute_error(y_true_list, y_pred_list)
             rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
-
-            print(
-                f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, " f"R_: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}",
-                flush=True,
-            )
+            print("Epoch:%d, Train Loss: %.4f, Test Loss: %.4f, R2: %.4f, MAE: %.4f, RMSE: %.4f" % (epoch_i, train_mean_loss, test_mean_loss, r2, mae, rmse))
