@@ -136,7 +136,7 @@ class HMCModel(torch.nn.Module):
     
     @staticmethod
     def add_graph_matrices(enhanced_graph):
-        """Store required matrices for the model, following CCXN structure."""
+
         incidence_2_t = enhanced_graph.cell_complex.incidence_matrix(rank=2).T
         adjacency_0 = enhanced_graph.cell_complex.adjacency_matrix(rank=0)
         
