@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import dataset.molhiv
+import dataset.zinc
 import rdkit.Chem
 import toponetx as tnx
 import torch
@@ -42,7 +43,7 @@ ALL_BOND_TYPES = {
 
 @dataclass
 class EnhancedGraph:
-    data: dataset.molhiv.MolHivData
+    data: dataset.molhiv.MolHivData | dataset.zinc.ZincData
     regression_value: float
     cell_complex: tnx.CellComplex
     x_0: torch.Tensor
@@ -51,8 +52,7 @@ class EnhancedGraph:
     graph_matrices: dict[str, torch.Tensor] = field(default_factory=dict)
 
 
-def load_molhiv_data() -> list[EnhancedGraph]:
-    datas = dataset.molhiv.get_data()
+def enhance_graphs(data, regression_fn):
     enhanced_graphs = []
     for data in datas:
         cell_complex = data.cell_complex
@@ -68,7 +68,7 @@ def load_molhiv_data() -> list[EnhancedGraph]:
             EnhancedGraph(
                 data=data,
                 cell_complex=cell_complex,
-                regression_value=data.solubility,
+                regression_value=regression_fn(data),
                 x_0=x_0,
                 x_1=x_1,
                 x_2=x_2,
@@ -76,6 +76,16 @@ def load_molhiv_data() -> list[EnhancedGraph]:
         )
 
     return enhanced_graphs
+
+
+def load_molhiv_data() -> list[EnhancedGraph]:
+    datas = dataset.molhiv.get_data()
+    return enhance_graphs(datas, lambda x: x.solubility)
+
+
+def load_zinc_data() -> list[EnhancedGraph]:
+    datas = dataset.zinc.get_data()
+    return enhance_graphs(datas, lambda x: x.log_P)
 
 
 def generate_x_0(complex: tnx.CellComplex) -> torch.Tensor:

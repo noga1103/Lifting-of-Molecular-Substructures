@@ -31,5 +31,17 @@
                 "configs/CAN.json"
             ]
         },
+        {
+            "name": "zinc",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/dataset/zinc.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
     ]
 }
