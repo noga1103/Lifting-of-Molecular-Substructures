@@ -5,6 +5,7 @@ import torch
 from train.ccxn import CCXNModel
 from train.can import CANModel
 from train.cwn import CWNModel
+from train.hmc import HMCModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
 import json
 
@@ -19,6 +20,8 @@ HIDDEN_DIMENSIONS = config['hidden_dimensions']
 if config['model'] == 'CCXNModel':
     model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 elif config['model'] == 'CANModel':
+    model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
+elif config['model'] == 'HMCModel':
     model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
 elif config['model'] == 'CWNModel':
     model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
