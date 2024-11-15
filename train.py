@@ -14,11 +14,7 @@ import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 
-GRADIENT_ACCUMULATION_STEPS = 500
-EPOCH_SIZE = 10_000
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
-OUTPUT_DIR = f"results/{SLURM_JOB_ID}/"
-os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure the output directory exists
 
 
 def load_config(config_path):
@@ -46,13 +42,21 @@ def initialize_model(config):
     return model
 
 
-def prepare_data(model):
-    full_data = load_molhiv_data()
-    [model.add_graph_matrices(graph) for graph in full_data]
-    return full_data
+def prepare_data(config, model):
+    if config["dataset"] == "molhiv":
+        data = load_molhiv_data()
+    elif config["dataset"] == "zinc":
+        data = load_zinc_data()
+    elif config["dataset"] == "zinc_small":
+        data = load_zinc_data_small()
+    else:
+        raise ValueError("Unknown dataset: {}".format(config["dataset"]))
+
+    [model.add_graph_matrices(graph) for graph in data]
+    return data
 
 
-def plot_metrics(metrics_list):
+def plot_metrics(metrics_list, output_dir):
     steps = [m["step"] for m in metrics_list]
 
     # Plot train_loss and test_loss together
@@ -66,7 +70,7 @@ def plot_metrics(metrics_list):
     plt.title("Train and Test Loss over Epochs")
     plt.legend()
     plt.grid(True)
-    plot_file = os.path.join(OUTPUT_DIR, "loss.png")
+    plot_file = os.path.join(output_dir, "loss.png")
     plt.savefig(plot_file)
     plt.close()
 
@@ -80,12 +84,12 @@ def plot_metrics(metrics_list):
         plt.ylabel(metric_name.upper())
         plt.title(f"{metric_name.upper()} over Epochs")
         plt.grid(True)
-        plot_file = os.path.join(OUTPUT_DIR, f"{metric_name}.png")
+        plot_file = os.path.join(output_dir, f"{metric_name}.png")
         plt.savefig(plot_file)
         plt.close()
 
 
-def train_model(model, train_data, test_data, config):
+def train_model(model, train_data, test_data, config, output_dir):
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     test_interval = config["test_interval"]
@@ -96,14 +100,14 @@ def train_model(model, train_data, test_data, config):
         epoch_loss = []
         model.train()
         optimizer.zero_grad()
-        for _ in tqdm(range(EPOCH_SIZE), desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph"):
+        for _ in tqdm(range(config["epoch_size"]), desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph"):
             losses = []
             graph = random.choice(train_data)
             y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
             y_hat = model(graph)
             loss = loss_fn(y_hat, y)
             losses.append(loss)
-            if len(losses) == GRADIENT_ACCUMULATION_STEPS:
+            if len(losses) == config["gradient_accumulation_steps"]:
                 loss = torch.stack(losses).mean()
                 loss.backward()
                 optimizer.step()
@@ -116,7 +120,7 @@ def train_model(model, train_data, test_data, config):
             with torch.no_grad():
                 train_mean_loss = np.mean(epoch_loss)
                 test_losses = []
-                current_test_data = random.sample(test_data, min(EPOCH_SIZE, len(test_data)))
+                current_test_data = random.sample(test_data, min(config["epoch_size"], len(test_data)))
                 for graph in tqdm(current_test_data, desc=f"Epoch {epoch_i}/{num_epochs} Testing", unit="graph"):
                     y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
                     y_hat = model(graph)
@@ -134,15 +138,15 @@ def train_model(model, train_data, test_data, config):
                 metrics_list.append(metrics)
 
     # Save metrics as JSON
-    metrics_file = os.path.join(OUTPUT_DIR, "metrics.json")
+    metrics_file = os.path.join(output_dir, "metrics.json")
     with open(metrics_file, "w") as f:
         json.dump(metrics_list, f)
 
     # Plot and save graphs for each metric
-    plot_metrics(metrics_list)
+    plot_metrics(metrics_list, output_dir)
 
     # Save the model
-    model_file = os.path.join(OUTPUT_DIR, "model.pth")
+    model_file = os.path.join(output_dir, "model.pth")
     torch.save(model.state_dict(), model_file)
 
 
@@ -151,9 +155,11 @@ def main():
     config = load_config(config_path)
     torch.manual_seed(0)
     model = initialize_model(config)
-    full_data = prepare_data(model)
+    full_data = prepare_data(config, model)
+    output_dir = f"results/{config['name']}_{SLURM_JOB_ID}/"
+    os.makedirs(output_dir, exist_ok=True)
     train_data, test_data = train_test_split(full_data, test_size=config["test_size"], shuffle=True)
-    train_model(model, train_data, test_data, config)
+    train_model(model, train_data, test_data, config, output_dir=output_dir)
 
 
 if __name__ == "__main__":
