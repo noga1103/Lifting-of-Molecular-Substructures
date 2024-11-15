@@ -6,60 +6,126 @@ from train.ccxn import CCXNModel
 from train.can import CANModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data
 import json
+import sys
+import os
+import random
+import matplotlib.pyplot as plt
+from tqdm.auto import tqdm
 
-# Load config
-with open('config.json', 'r') as f:
-    config = json.load(f)
-
-torch.manual_seed(0)
-HIDDEN_DIMENSIONS = config['hidden_dimensions']
-
-if config['model'] == 'CCXNModel':
-    model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-elif config['model'] == 'CANModel':
-    model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config['n_layers'])
-else:
-    raise ValueError("Unknown model: {}".format(config['model']))
+SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
+OUTPUT_DIR = f"results/{SLURM_JOB_ID}/"
+os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure the output directory exists
 
 
-model = model.to(DEVICE)
-full_data = load_molhiv_data()
-[model.add_graph_matrices(graph) for graph in full_data]
+def load_config(config_path):
+    with open(config_path, "r") as f:
+        config_str = f.read()
+        print(f"Running job {SLURM_JOB_ID} with config: {config_path}")
+        print(config_str)
+        config = json.loads(config_str)
+    return config
 
-# Rest of your code remains exactly the same
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=config['learning_rate'])
-# Split dataset
-train_data, test_data = train_test_split(full_data, test_size=config['test_size'], shuffle=True)
-# Training loop
-test_interval = config['test_interval']
-num_epochs = config['num_epochs']
-for epoch_i in range(1, num_epochs + 1):
-    epoch_loss = []
-    model.train()
-    for graph in train_data:
-        y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
-        optimizer.zero_grad()
-        y_hat = model(graph)
-        loss = loss_fn(y_hat, y)
-        loss.backward()
-        optimizer.step()
-        epoch_loss.append(loss.item())
-    if epoch_i % test_interval == 0:
-        model.eval()
-        y_true_list, y_pred_list = [], []
-        with torch.no_grad():
-            train_mean_loss = np.mean(epoch_loss)
-            test_losses = []
-            for graph in test_data:
-                y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
-                y_hat = model(graph)
-                test_loss = loss_fn(y_hat, y)
-                y_true_list.append(y.item())
-                y_pred_list.append(y_hat.item())
-                test_losses.append(test_loss.item())
-            test_mean_loss = np.mean(test_losses)
-            r2 = r2_score(y_true_list, y_pred_list)
-            mae = mean_absolute_error(y_true_list, y_pred_list)
-            rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
-            print("Epoch:%d, Train Loss: %.4f, Test Loss: %.4f, R2: %.4f, MAE: %.4f, RMSE: %.4f" % (epoch_i, train_mean_loss, test_mean_loss, r2, mae, rmse))
+
+def initialize_model(config):
+    HIDDEN_DIMENSIONS = config["hidden_dimensions"]
+    if config["model"] == "CCXNModel":
+        model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    elif config["model"] == "CANModel":
+        model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    else:
+        raise ValueError("Unknown model: {}".format(config["model"]))
+    model = model.to(DEVICE)
+    return model
+
+
+def prepare_data(model):
+    full_data = load_molhiv_data()
+    [model.add_graph_matrices(graph) for graph in full_data]
+    return full_data
+
+
+def plot_metrics(metrics_list):
+    steps = [m["step"] for m in metrics_list]
+    metrics_names = ["r2", "mae", "rmse"]
+    for metric_name in metrics_names:
+        values = [m[metric_name] for m in metrics_list]
+        plt.figure()
+        plt.plot(steps, values, marker="o")
+        plt.xlabel("Epoch")
+        plt.ylabel(metric_name.upper())
+        plt.title(f"{metric_name.upper()} over Epochs")
+        plt.grid(True)
+        plot_file = os.path.join(OUTPUT_DIR, f"{metric_name}.png")
+        plt.savefig(plot_file)
+        plt.close()
+
+
+def train_model(model, train_data, test_data, config):
+    loss_fn = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    test_interval = config["test_interval"]
+    num_epochs = config["num_epochs"]
+    metrics_list = []
+
+    for epoch_i in range(1, num_epochs + 1):
+        epoch_loss = []
+        model.train()
+        train_loader = tqdm(train_data, desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph")
+        for graph in train_loader:
+            y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
+            optimizer.zero_grad()
+            y_hat = model(graph)
+            loss = loss_fn(y_hat, y)
+            loss.backward()
+            optimizer.step()
+            epoch_loss.append(loss.item())
+            train_loader.set_postfix(loss=loss.item())
+
+        if epoch_i % test_interval == 0:
+            model.eval()
+            y_true_list, y_pred_list = [], []
+            with torch.no_grad():
+                train_mean_loss = np.mean(epoch_loss)
+                test_losses = []
+                test_loader = tqdm(test_data, desc=f"Epoch {epoch_i}/{num_epochs} Testing", unit="graph")
+                for graph in test_loader:
+                    y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
+                    y_hat = model(graph)
+                    test_loss = loss_fn(y_hat, y)
+                    y_true_list.append(y.item())
+                    y_pred_list.append(y_hat.item())
+                    test_losses.append(test_loss.item())
+                    test_loader.set_postfix(loss=test_loss.item())
+                test_mean_loss = np.mean(test_losses)
+                r2 = r2_score(y_true_list, y_pred_list)
+                mae = mean_absolute_error(y_true_list, y_pred_list)
+                rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
+                print(f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, R2: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}")
+                metrics = {"step": epoch_i, "train_loss": train_mean_loss, "test_loss": test_mean_loss, "r2": r2, "mae": mae, "rmse": rmse}
+                metrics_list.append(metrics)
+
+    # Save metrics as JSON
+    metrics_file = os.path.join(OUTPUT_DIR, "metrics.json")
+    with open(metrics_file, "w") as f:
+        json.dump(metrics_list, f)
+
+    # Plot and save graphs for each metric
+    plot_metrics(metrics_list)
+
+    # Save the model
+    model_file = os.path.join(OUTPUT_DIR, "model.pth")
+    torch.save(model.state_dict(), model_file)
+
+
+def main():
+    config_path = sys.argv[1]
+    config = load_config(config_path)
+    torch.manual_seed(0)
+    model = initialize_model(config)
+    full_data = prepare_data(model)
+    train_data, test_data = train_test_split(full_data, test_size=config["test_size"], shuffle=True)
+    train_model(model, train_data, test_data, config)
+
+
+if __name__ == "__main__":
+    main()
