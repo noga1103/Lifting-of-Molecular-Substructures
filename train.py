@@ -46,6 +46,23 @@ def prepare_data(model):
 
 def plot_metrics(metrics_list):
     steps = [m["step"] for m in metrics_list]
+
+    # Plot train_loss and test_loss together
+    train_losses = [m["train_loss"] for m in metrics_list]
+    test_losses = [m["test_loss"] for m in metrics_list]
+    plt.figure()
+    plt.plot(steps, train_losses, label="Train Loss", marker="o")
+    plt.plot(steps, test_losses, label="Test Loss", marker="o")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Train and Test Loss over Epochs")
+    plt.legend()
+    plt.grid(True)
+    plot_file = os.path.join(OUTPUT_DIR, "loss.png")
+    plt.savefig(plot_file)
+    plt.close()
+
+    # Plot other metrics
     metrics_names = ["r2", "mae", "rmse"]
     for metric_name in metrics_names:
         values = [m[metric_name] for m in metrics_list]
