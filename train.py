@@ -12,6 +12,8 @@ import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 
+GRADIENT_ACCUMULATION_STEPS = 500
+EPOCH_SIZE = 10_000
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
 OUTPUT_DIR = f"results/{SLURM_JOB_ID}/"
 os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure the output directory exists
@@ -87,16 +89,20 @@ def train_model(model, train_data, test_data, config):
     for epoch_i in range(1, num_epochs + 1):
         epoch_loss = []
         model.train()
-        train_loader = tqdm(train_data, desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph")
-        for graph in train_loader:
+        optimizer.zero_grad()
+        for _ in tqdm(range(EPOCH_SIZE), desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph"):
+            losses = []
+            graph = random.choice(train_data)
             y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
-            optimizer.zero_grad()
             y_hat = model(graph)
             loss = loss_fn(y_hat, y)
-            loss.backward()
-            optimizer.step()
-            epoch_loss.append(loss.item())
-            train_loader.set_postfix(loss=loss.item())
+            losses.append(loss)
+            if len(losses) == GRADIENT_ACCUMULATION_STEPS:
+                loss = torch.stack(losses).mean()
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+                epoch_loss.append(loss.item())
 
         if epoch_i % test_interval == 0:
             model.eval()
@@ -104,15 +110,15 @@ def train_model(model, train_data, test_data, config):
             with torch.no_grad():
                 train_mean_loss = np.mean(epoch_loss)
                 test_losses = []
-                test_loader = tqdm(test_data, desc=f"Epoch {epoch_i}/{num_epochs} Testing", unit="graph")
-                for graph in test_loader:
+                current_test_data = random.sample(test_data, min(EPOCH_SIZE, len(test_data)))
+                for graph in tqdm(current_test_data, desc=f"Epoch {epoch_i}/{num_epochs} Testing", unit="graph"):
                     y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
                     y_hat = model(graph)
                     test_loss = loss_fn(y_hat, y)
                     y_true_list.append(y.item())
                     y_pred_list.append(y_hat.item())
                     test_losses.append(test_loss.item())
-                    test_loader.set_postfix(loss=test_loss.item())
+
                 test_mean_loss = np.mean(test_losses)
                 r2 = r2_score(y_true_list, y_pred_list)
                 mae = mean_absolute_error(y_true_list, y_pred_list)
