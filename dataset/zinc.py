@@ -1,11 +1,11 @@
-import cPickle as pickle
+import pickle
 import gc
 from dataclasses import dataclass
 import toponetx
 import networkx as nx
 from rdkit import Chem
 
-# Chunk the pkl files b/c github has a 100MB limit on filesizes.
+pickle._Pickler.fast = 1 
 NUM_CHUNKS = 12
 PKL_FILE_BASE = "dataset/pkl_data/zinc"
 CSV_FILE = "dataset/csv_data/250k_rndm_zinc_drugs_clean_3.csv"
@@ -101,9 +101,6 @@ def save_pkl_chunks(data, base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
     import math
 
     chunk_size = math.ceil(len(data) / num_chunks)
-    
-    # Configure pickle for faster processing
-    pickle.Pickler.fast = 1
     
     for i in range(num_chunks):
         start_idx = i * chunk_size
