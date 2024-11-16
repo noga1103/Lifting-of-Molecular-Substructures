@@ -1,4 +1,3 @@
-import marshal
 import cPickle as pickle
 import gc
 from dataclasses import dataclass
