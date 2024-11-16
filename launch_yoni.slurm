@@ -33,4 +33,4 @@ cd /home/dcor/jh1/code/gnn/
 
 PYTHONUNBUFFERED=1
 
-/home/dcor/jh1/miniforge3/envs/gnn/bin/python train.py configs/CWN.json
+/home/dcor/jh1/miniforge3/envs/gnn/bin/python train.py configs/CAN.json
