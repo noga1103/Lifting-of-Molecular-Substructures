@@ -113,6 +113,7 @@ def train_model(model, train_data, test_data, config, output_dir):
             if len(losses) == config["gradient_accumulation_steps"]:
                 loss = torch.stack(losses).mean()
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) 
                 optimizer.step()
                 optimizer.zero_grad()
                 epoch_loss.append(loss.item())
