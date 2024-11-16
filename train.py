@@ -1,4 +1,4 @@
-import time
+import datetime
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -92,7 +92,7 @@ def plot_metrics(metrics_list, output_dir):
 
 
 def train_model(model, train_data, test_data, config, output_dir):
-    start = time.now()
+    start = datetime.datetime.now()
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     test_interval = config["test_interval"]
@@ -142,7 +142,7 @@ def train_model(model, train_data, test_data, config, output_dir):
 
     # Save metrics as JSON
     metrics_file = os.path.join(output_dir, "metrics.json")
-    end = time.now()
+    end = datetime.datetime.now()
     metrics_dict = {"runtime_metrics": metrics_list, "parameters": count_parameters(model), "training_start": start, "training_end": end, "elapsed": end - start}
     with open(metrics_file, "w") as f:
         json.dump(metrics_dict, f, indent=4)
@@ -166,9 +166,11 @@ def main():
     model = initialize_model(config)
     print(f"Parameters: {count_parameters(model)}")
     full_data = prepare_data(config, model)
+    print(f"Data loaded: {len(full_data)}")
     output_dir = f"results/{config['name']}_{SLURM_JOB_ID}/"
     os.makedirs(output_dir, exist_ok=True)
     train_data, test_data = train_test_split(full_data, test_size=config["test_size"], shuffle=True)
+    print("Starting training...")
     train_model(model, train_data, test_data, config, output_dir=output_dir)
 
 
