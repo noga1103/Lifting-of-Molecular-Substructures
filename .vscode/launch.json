@@ -25,7 +25,8 @@
             "cwd": "${workspaceFolder}",
             "justMyCode": false,
             "env": {
-                "PYTHONPATH": "${workspaceFolder}"
+                "PYTHONPATH": "${workspaceFolder}",
+                "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
             },
             "args": [
                 "configs/CAN.json"
@@ -40,7 +41,8 @@
             "cwd": "${workspaceFolder}",
             "justMyCode": false,
             "env": {
-                "PYTHONPATH": "${workspaceFolder}"
+                "PYTHONPATH": "${workspaceFolder}",
+                "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
             },
             "args": [
                 "configs/small/CAN_small.json"

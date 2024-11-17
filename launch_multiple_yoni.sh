@@ -13,7 +13,7 @@ gnn_3090() {
            --exclude="rack-omerl-g01" \
            --constraint="geforce_rtx_3090" \
            --partition=killable \
-           --wrap="nvidia-smi && cd /home/dcor/jh1/code/gnn/ && export PYTHONUNBUFFERED=1 && /home/dcor/jh1/miniforge3/envs/gnn/bin/python train.py ${config_file}"
+           --wrap="nvidia-smi && cd /home/dcor/jh1/code/gnn/ && export WANDB_API_KEY="5b89f619aac9924356bc9455dcee6df7659defc8" && export PYTHONUNBUFFERED=1 && /home/dcor/jh1/miniforge3/envs/gnn/bin/python train.py ${config_file}"
 }
 
 for file in configs/param_sweep/*; do

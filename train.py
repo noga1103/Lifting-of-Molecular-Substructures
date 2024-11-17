@@ -6,6 +6,8 @@ import torch
 from train.can import CANModel
 from train.ccxn import CCXNModel
 from train.cwn import CWNModel
+import wandb
+
 
 # from train.hmc import HMCModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
@@ -17,6 +19,7 @@ import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
+WANDB_API_KEY = os.environ.get("WANDB_API_KEY", None)
 
 
 def load_config(config_path):
@@ -120,6 +123,8 @@ def train_model(model, train_data, test_data, config, output_dir):
                 optimizer.zero_grad()
                 losses = []
 
+        if WANDB_API_KEY is not None:
+            wandb.log(step=epoch_i, data={"train_loss": np.mean(epoch_loss)})
         if epoch_i % test_interval == 0:
             model.eval()
             y_true_list, y_pred_list = [], []
@@ -139,6 +144,17 @@ def train_model(model, train_data, test_data, config, output_dir):
                 r2 = r2_score(y_true_list, y_pred_list)
                 mae = mean_absolute_error(y_true_list, y_pred_list)
                 rmse = np.sqrt(mean_squared_error(y_true_list, y_pred_list))
+                if WANDB_API_KEY is not None:
+                    wandb.log(
+                        step=epoch_i,
+                        data={
+                            "train_loss": train_mean_loss,
+                            "test_loss": test_mean_loss,
+                            "r2": r2,
+                            "mae": mae,
+                            "rmse": rmse,
+                        },
+                    )
                 print(f"Epoch:{epoch_i}, Train Loss: {train_mean_loss:.4f}, Test Loss: {test_mean_loss:.4f}, R2: {r2:.4f}, MAE: {mae:.4f}, RMSE: {rmse:.4f}")
                 metrics = {"step": epoch_i, "train_loss": train_mean_loss, "test_loss": test_mean_loss, "r2": r2, "mae": mae, "rmse": rmse}
                 metrics_list.append(metrics)
@@ -172,6 +188,13 @@ def main():
     config_path = sys.argv[1]
     config = load_config(config_path)
     torch.manual_seed(0)
+    if WANDB_API_KEY is not None:
+        wandb.init(
+            project="GNN",
+            name=f"{SLURM_JOB_ID} - {config_path}",
+            config=config,
+        )
+
     model = initialize_model(config)
     print(f"Parameters: {count_parameters(model)}")
     full_data = prepare_data(config, model)

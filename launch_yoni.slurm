@@ -32,5 +32,6 @@ nvidia-smi
 cd /home/dcor/jh1/code/gnn/
 
 PYTHONUNBUFFERED=1
+WANDB_API_KEY="5b89f619aac9924356bc9455dcee6df7659defc8"
 
 /home/dcor/jh1/miniforge3/envs/gnn/bin/python train.py configs/CAN.json
