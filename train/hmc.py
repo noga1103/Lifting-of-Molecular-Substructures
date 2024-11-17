@@ -72,9 +72,6 @@ class HMCModel(torch.nn.Module):
         x_1 = generate_x_1_combinatorial(cc).to(DEVICE)
         x_2 = generate_x_2_combinatorial(cc).to(DEVICE)
 
-        # TODO: this was copied from above. is it right or will generate_x_2 do the same thing?
-        # x_2 = torch.ones(incidence_2.shape[1], self.in_channels_2, dtype=WEIGHT_DTYPE, device=DEVICE)
-
         adjacency_0 = torch.from_numpy(cc.adjacency_matrix(0, 1).todense()).to_sparse().to(DEVICE, dtype=WEIGHT_DTYPE)
         adjacency_1 = torch.from_numpy(cc.adjacency_matrix(1, 2).todense()).to_sparse().to(DEVICE, dtype=WEIGHT_DTYPE)
 

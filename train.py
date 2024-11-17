@@ -40,7 +40,7 @@ def initialize_model(config):
     elif config["model"] == "HMCModel":
         model = HMCModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
-        model = CWNModel(hidden_dimensions, hidden_dimensions, hidden_dimensions, n_layers=config["n_layers"])
+        model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
     model = model.to(DEVICE)
