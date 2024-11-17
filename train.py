@@ -9,7 +9,7 @@ from train.cwn import CWNModel
 import wandb
 
 
-# from train.hmc import HMCModel
+from train.hmc import HMCModel
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
 import json
 import sys
@@ -37,8 +37,8 @@ def initialize_model(config):
         model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
     elif config["model"] == "CANModel":
         model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
-    # elif config["model"] == "HMCModel":
-    #     model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+    elif config["model"] == "HMCModel":
+        model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
         model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
     else:
@@ -125,6 +125,7 @@ def train_model(model, train_data, test_data, config, output_dir):
 
         if WANDB_API_KEY is not None:
             wandb.log(step=epoch_i, data={"train_loss": np.mean(epoch_loss)})
+
         if epoch_i % test_interval == 0:
             model.eval()
             y_true_list, y_pred_list = [], []

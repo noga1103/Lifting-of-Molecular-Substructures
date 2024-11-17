@@ -9,7 +9,7 @@
 ##SBATCH --mem=16000 # CPU memory (MB)
 ##SBATCH --cpus-per-gpu=2 
 #SBATCH --gpus=1 # GPUs in total
-#SBATCH --exclude="rack-omerl-g01,rack-gww-dgx1"
+#SBATCH --exclude="rack-omerl-g01,rack-gww-dgx1,n-501,n-301,n-307"
 
 # All the options:
 # "geforce_rtx_3090|a100|a5000|a6000|quadro_rtx_8000|tesla_v100" # GPU type. Supported Features: tesla_v100, quadro_rtx_8000, geforce_rtx_3090, titan_xp, geforce_rtx_2080,a100,a5000,a6000
