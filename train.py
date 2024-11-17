@@ -54,7 +54,9 @@ def prepare_data(config, model):
     else:
         raise ValueError("Unknown dataset: {}".format(config["dataset"]))
 
+    start = datetime.datetime.now()
     [model.add_graph_matrices(graph) for graph in data]
+    print(f"adding graph matrices took: {(datetime.datetime.now() - start).total_seconds()}s")
     return data
 
 
@@ -103,8 +105,8 @@ def train_model(model, train_data, test_data, config, output_dir):
         epoch_loss = []
         model.train()
         optimizer.zero_grad()
+        losses = []
         for _ in tqdm(range(config["epoch_size"]), desc=f"Epoch {epoch_i}/{num_epochs} Training", unit="graph"):
-            losses = []
             graph = random.choice(train_data)
             y = torch.tensor([graph.regression_value], dtype=WEIGHT_DTYPE).to(DEVICE)
             y_hat = model(graph)
@@ -112,11 +114,11 @@ def train_model(model, train_data, test_data, config, output_dir):
             losses.append(loss)
             if len(losses) == config["gradient_accumulation_steps"]:
                 loss = torch.stack(losses).mean()
+                epoch_loss.append(loss.item())
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) 
                 optimizer.step()
                 optimizer.zero_grad()
-                epoch_loss.append(loss.item())
+                losses = []
 
         if epoch_i % test_interval == 0:
             model.eval()
