@@ -1,0 +1,67 @@
+\documentclass{acmart}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[utf8]{inputenc}
+\newcommand{\x}{\mathbf{x}}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+ \citestyle{acmauthoryear}
+
+%%
+\title{Title}
+\author{Name - ID}
+\author{Name - ID}
+
+\date{}
+
+\begin{document}
+
+\begin{abstract}
+TL;DR of this project -  one paragraph
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+ Explain the background and the problem you are trying to solve in this project - 0.5-1 page
+\section{Related Work}
+Literature review of related works, e.g. if you only focus on MPGNNs : Message-Passing graph neural network are a popular class of neural networks which...\cite{morris2021weisfeiler} - 0.5-1 page
+
+
+\section{Method}
+Being in giving intuition to the solution you are proposing, then formally detail the method/approach you are suggesting -  1 page
+
+
+
+\section{Experiments and Results}
+ Describe in details the experiments you conducted, the datasets you use, the evaluation metric and models/other methods you compared to, how you generated your splits / where did you take the splits from, etc. Make sure to explain every experiment you show, what is the goal of this experiment? If needed, include running time /memory report, etc.
+This is also the place to include details on your implementation, e.g. which libraries did you use, and a link to public github with the code (can be anonymous github) - 1-2 pages
+
+\paragraph{Datasets}
+
+\paragraph{Evaluated Models}
+
+\paragraph{Evaluation Protocol}
+
+ \subsection{Results}
+ Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
+ 1 page
+
+
+\section{Future work}
+Suggest 1-2 to continue your work or futhure improve you work.
+one-two paragraphs
+
+\section{Conclusion}
+Conclude the project - what did you try to achieve, how you tried to achieve it, and did you manage to achieve that?  - one paragraph
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
+
