@@ -28,7 +28,7 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "args": [
-                "configs/CAN.json"
+                "configs/small/CAN_small.json"
             ]
         },
         {

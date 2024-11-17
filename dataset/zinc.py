@@ -1,4 +1,5 @@
 import dill as pickle
+import datetime
 import gc
 from dataclasses import dataclass
 
@@ -6,8 +7,8 @@ import toponetx
 import networkx as nx
 from rdkit import Chem
 
-# Enable fast mode for Pickler 
-pickle.Pickler.fast = 1 
+# Enable fast mode for Pickler
+# pickle.Pickler.fast = 1
 
 NUM_CHUNKS = 12
 PKL_FILE_BASE = "dataset/pkl_data/zinc"
@@ -82,7 +83,7 @@ def get_data():
 def get_data_small():
     global DATA_SMALL
     if DATA_SMALL is None:
-        DATA_SMALL = read_pkl()
+        DATA_SMALL = read_small()
     return DATA_SMALL
 
 
@@ -92,7 +93,7 @@ def save_pkl():
 
     csv = pandas.read_csv(CSV_FILE)
     result = []
-    
+
     # Disable garbage collection during processing
     gc.disable()
     try:
@@ -126,14 +127,14 @@ def save_pkl_chunks(data, base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
     import math
 
     chunk_size = math.ceil(len(data) / num_chunks)
-    
+
     for i in range(num_chunks):
         start_idx = i * chunk_size
         end_idx = min((i + 1) * chunk_size, len(data))  # Don't go beyond the list's length
         chunk = data[start_idx:end_idx]
-        
+
         output_file = f"{base_path}_{i}.pkl"
-        
+
         with open(output_file, "wb") as f:
             pickle.dump(chunk, f)
 
@@ -144,18 +145,20 @@ def read_small():
 
 def read_pkl(base_path=PKL_FILE_BASE, num_chunks=NUM_CHUNKS):
     data = []
-    
+
     # Disable garbage collection during loading
     gc.disable()
     try:
         for i in range(num_chunks):
+            start = datetime.datetime.now()
             input_file = f"{base_path}_{i}.pkl"
             with open(input_file, "rb") as f:
                 chunk = pickle.load(f)
+            print(f"Loaded {input_file} in {(datetime.datetime.now() - start).total_seconds()}s")
             data.extend(chunk)
     finally:
         gc.enable()
-    
+
     return data
 
 
