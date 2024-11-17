@@ -32,13 +32,13 @@ def load_config(config_path):
 
 
 def initialize_model(config):
-    HIDDEN_DIMENSIONS = config["hidden_dimensions"]
+    hidden_dimensions = config["hidden_dimensions"]
     if config["model"] == "CCXNModel":
-        model = CCXNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+        model = CCXNModel(hidden_dimensions, hidden_dimensions, hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CANModel":
-        model = CANModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+        model = CANModel(hidden_dimensions, hidden_dimensions, hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "HMCModel":
-        model = HMCModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+        model = HMCModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
         model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
     else:
@@ -53,7 +53,8 @@ def prepare_data(config, model):
     elif config["dataset"] == "zinc":
         data = load_zinc_data()
     elif config["dataset"] == "zinc_small":
-        data = load_zinc_data_small()
+        # TODO(horovitz): remove this
+        data = load_zinc_data_small()[0:10]
     else:
         raise ValueError("Unknown dataset: {}".format(config["dataset"]))
 
