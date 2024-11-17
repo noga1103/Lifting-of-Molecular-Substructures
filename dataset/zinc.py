@@ -6,8 +6,8 @@ import toponetx
 import networkx as nx
 from rdkit import Chem
 
-# Enable fast mode for Pickler
-pickle._Pickler.fast = 1
+# Enable fast mode for Pickler 
+pickle.Pickler.fast = 1 
 
 NUM_CHUNKS = 12
 PKL_FILE_BASE = "dataset/pkl_data/zinc"
