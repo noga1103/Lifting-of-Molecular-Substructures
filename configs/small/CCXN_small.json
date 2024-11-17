@@ -1,6 +1,6 @@
 {
-    "name": "HMC_small",
-    "model": "HMCModel",
+    "name": "CCXN_small",
+    "model": "CCXNModel",
     "hidden_dimensions": 20,
     "n_layers": 2,
     "learning_rate": 0.001,

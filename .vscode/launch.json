@@ -33,7 +33,55 @@
             ]
         },
         {
-            "name": "debug train small",
+            "name": "debug CAN",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
+            },
+            "args": [
+                "configs/small/CAN_small.json"
+            ]
+        },
+        {
+            "name": "debug CCXN",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
+            },
+            "args": [
+                "configs/small/CCXN_small.json"
+            ]
+        },
+        {
+            "name": "debug CWN",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
+            },
+            "args": [
+                "configs/small/CWN_small.json"
+            ]
+        },
+        {
+            "name": "debug HMC",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/train.py",
