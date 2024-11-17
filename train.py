@@ -144,7 +144,13 @@ def train_model(model, train_data, test_data, config, output_dir):
     # Save metrics as JSON
     metrics_file = os.path.join(output_dir, "metrics.json")
     end = datetime.datetime.now()
-    metrics_dict = {"runtime_metrics": metrics_list, "parameters": count_parameters(model), "training_start": start, "training_end": end, "elapsed": end - start}
+    metrics_dict = {
+        "runtime_metrics": metrics_list,
+        "parameters": count_parameters(model),
+        "training_start": start.isoformat(),
+        "training_end": end.isoformat(),
+        "elapsed": (end - start).total_seconds(),
+    }
     with open(metrics_file, "w") as f:
         json.dump(metrics_dict, f, indent=4)
 
