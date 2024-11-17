@@ -10,9 +10,9 @@ DEVICE = torch.device("cuda")
 WEIGHT_DTYPE = torch.float32
 X_2_WIDTH = 1
 
-ONE_OUT_0_ENCODING_SIZE = 14
-ONE_OUT_1_ENCODING_SIZE = 5
-ONE_OUT_2_ENCODING_SIZE = 1
+ONE_HOT_0_ENCODING_SIZE = 14
+ONE_HOT_1_ENCODING_SIZE = 5
+ONE_HOT_2_ENCODING_SIZE = 1
 
 
 ALL_ATOMIC_SYMBOLS = {
@@ -45,33 +45,16 @@ ALL_BOND_TYPES = {
 class EnhancedGraph:
     data: dataset.molhiv.MolHivData | dataset.zinc.ZincData
     regression_value: float
-    cell_complex: tnx.CellComplex
-    x_0: torch.Tensor
-    x_1: torch.Tensor
-    x_2: torch.Tensor
     graph_matrices: dict[str, torch.Tensor] = field(default_factory=dict)
 
 
 def enhance_graphs(datas, regression_fn):
     enhanced_graphs = []
     for data in datas:
-        cell_complex = data.cell_complex
-        x_0 = generate_x_0(cell_complex)
-        x_1 = generate_x_1(cell_complex)
-        x_2 = generate_x_2(cell_complex)
-
-        x_0 = x_0.to(DEVICE)
-        x_1 = x_1.to(DEVICE)
-        x_2 = x_2.to(DEVICE)
-
         enhanced_graphs.append(
             EnhancedGraph(
                 data=data,
-                cell_complex=cell_complex,
                 regression_value=regression_fn(data),
-                x_0=x_0,
-                x_1=x_1,
-                x_2=x_2,
             )
         )
 
@@ -93,7 +76,7 @@ def load_zinc_data() -> list[EnhancedGraph]:
     return enhance_graphs(datas, lambda x: x.reward_penalized_log_p)
 
 
-def generate_x_0(complex: tnx.CellComplex) -> torch.Tensor:
+def generate_x_0(complex: tnx.CellComplex | tnx.CombinatorialComplex) -> torch.Tensor:
     num_symbols = max(ALL_ATOMIC_SYMBOLS.values()) + 1  # Length of one-hot vector
     node_to_symbol = complex.get_node_attributes("atomic_symbol")
     x_0 = []
@@ -121,5 +104,24 @@ def generate_x_1(complex: tnx.CellComplex) -> torch.Tensor:
     return torch.stack(x_1)
 
 
+def generate_x_1_combinatorial(complex: tnx.CombinatorialComplex) -> torch.Tensor:
+    num_bond_types = max(ALL_BOND_TYPES.values()) + 1
+    edge_to_bond_type = complex.get_cell_attributes("bond_type")
+    x_1 = []
+    for edge in [c for c in complex.cells if len(c) == 2]:
+        bond_type = edge_to_bond_type.get(edge, None)
+        index = ALL_BOND_TYPES.get(bond_type, 0)
+        one_hot = torch.zeros(num_bond_types, dtype=WEIGHT_DTYPE)
+        one_hot[index] = 1.0
+        x_1.append(one_hot)
+    if not x_1:
+        return torch.zeros((0, num_bond_types), dtype=WEIGHT_DTYPE)
+    return torch.stack(x_1)
+
+
 def generate_x_2(complex: tnx.CellComplex) -> torch.Tensor:
-    return torch.zeros((len(complex.cells), X_2_WIDTH), dtype=WEIGHT_DTYPE)
+    return torch.ones((len(complex.cells), X_2_WIDTH), dtype=WEIGHT_DTYPE)
+
+
+def generate_x_2_combinatorial(complex: tnx.CellComplex) -> torch.Tensor:
+    return torch.ones((len([c for c in complex.cells if len(c) >= 3]), X_2_WIDTH), dtype=WEIGHT_DTYPE)

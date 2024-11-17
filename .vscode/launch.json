@@ -45,7 +45,7 @@
                 "WANDB_API_KEY": "5b89f619aac9924356bc9455dcee6df7659defc8"
             },
             "args": [
-                "configs/small/CAN_small.json"
+                "configs/small/HMC_small.json"
             ]
         },
         {

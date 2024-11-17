@@ -3,7 +3,7 @@ from topomodelx.nn.cell.ccxn import CCXN
 from topomodelx.utils.sparse import from_sparse
 import torch
 
-from train.train_utils import DEVICE, ONE_OUT_0_ENCODING_SIZE, ONE_OUT_1_ENCODING_SIZE, WEIGHT_DTYPE
+from train.train_utils import DEVICE, ONE_HOT_0_ENCODING_SIZE, ONE_HOT_1_ENCODING_SIZE, ONE_HOT_2_ENCODING_SIZE, WEIGHT_DTYPE, generate_x_0, generate_x_1, generate_x_2
 
 
 class CCXNModel(torch.nn.Module):
@@ -13,7 +13,7 @@ class CCXNModel(torch.nn.Module):
         in_channels_1,
         in_channels_2,
         n_layers=2,
-        att=False,
+        att=True,
     ):
         super().__init__()
         self.base_model = CCXN(
@@ -23,19 +23,21 @@ class CCXNModel(torch.nn.Module):
             n_layers=n_layers,
             att=att,
         )
-        self.lin_0_input = torch.nn.Linear(ONE_OUT_0_ENCODING_SIZE, in_channels_0)
-        self.lin_1_input = torch.nn.Linear(ONE_OUT_1_ENCODING_SIZE, in_channels_1)
+        self.lin_0_input = torch.nn.Linear(ONE_HOT_0_ENCODING_SIZE, in_channels_0)
+        self.lin_1_input = torch.nn.Linear(ONE_HOT_1_ENCODING_SIZE, in_channels_1)
+        self.lin_2_input = torch.nn.Linear(ONE_HOT_2_ENCODING_SIZE, in_channels_2)
         self.lin_0 = torch.nn.Linear(in_channels_0, 1)
         self.lin_1 = torch.nn.Linear(in_channels_1, 1)
         self.lin_2 = torch.nn.Linear(in_channels_2, 1)
 
     def forward(self, graph):
-        x_0, x_1 = graph.x_0, graph.x_1
+        x_0, x_1, x_2 = graph.graph_matrices["x_0"], graph.graph_matrices["x_1"], graph.graph_matrices["x_2"]
         adjacency_0, incidence_2_t = graph.graph_matrices["adjacency_0"], graph.graph_matrices["incidence_2_t"]
 
         x_0 = self.lin_0_input(x_0)
         x_1 = self.lin_1_input(x_1)
-        x_0, x_1, x_2 = self.base_model(x_0, x_1, adjacency_0, incidence_2_t)
+        x_2 = self.lin_2_input(x_2)
+        x_0, x_1, x_2 = self.base_model(x_0, x_1, adjacency_0, incidence_2_t, x_2=x_2)
         x_0 = self.lin_0(x_0)
         x_1 = self.lin_1(x_1)
         x_2 = self.lin_2(x_2)
@@ -50,11 +52,18 @@ class CCXNModel(torch.nn.Module):
 
     @staticmethod
     def add_graph_matrices(enhanced_graph):
-        incidence_2_t = enhanced_graph.cell_complex.incidence_matrix(rank=2).T
-        adjacency_0 = enhanced_graph.cell_complex.adjacency_matrix(rank=0)
+        x_0 = generate_x_0(enhanced_graph.data.cell_complex).to(DEVICE)
+        x_1 = generate_x_1(enhanced_graph.data.cell_complex).to(DEVICE)
+        x_2 = generate_x_2(enhanced_graph.data.cell_complex).to(DEVICE)
+
+        incidence_2_t = enhanced_graph.data.cell_complex.incidence_matrix(rank=2).T
+        adjacency_0 = enhanced_graph.data.cell_complex.adjacency_matrix(rank=0)
 
         incidence_2_t = from_sparse(incidence_2_t).to(WEIGHT_DTYPE).to(DEVICE)
         adjacency_0 = from_sparse(adjacency_0).to(WEIGHT_DTYPE).to(DEVICE)
 
+        enhanced_graph.graph_matrices["x_0"] = x_0
+        enhanced_graph.graph_matrices["x_1"] = x_1
+        enhanced_graph.graph_matrices["x_2"] = x_2
         enhanced_graph.graph_matrices["incidence_2_t"] = incidence_2_t
         enhanced_graph.graph_matrices["adjacency_0"] = adjacency_0
