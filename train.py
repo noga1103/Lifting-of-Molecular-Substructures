@@ -40,7 +40,7 @@ def initialize_model(config):
     elif config["model"] == "HMCModel":
         model = HMCModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
-        model = CWNModel(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, n_layers=config["n_layers"])
+        model = CWNModel(hidden_dimensions, hidden_dimensions, hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
     model = model.to(DEVICE)
@@ -53,8 +53,7 @@ def prepare_data(config, model):
     elif config["dataset"] == "zinc":
         data = load_zinc_data()
     elif config["dataset"] == "zinc_small":
-        # TODO(horovitz): remove this
-        data = load_zinc_data_small()[0:10]
+        data = load_zinc_data_small()
     else:
         raise ValueError("Unknown dataset: {}".format(config["dataset"]))
 
