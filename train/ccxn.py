@@ -25,19 +25,17 @@ class CCXNModel(torch.nn.Module):
         )
         self.lin_0_input = torch.nn.Linear(ONE_HOT_0_ENCODING_SIZE, in_channels_0)
         self.lin_1_input = torch.nn.Linear(ONE_HOT_1_ENCODING_SIZE, in_channels_1)
-        self.lin_2_input = torch.nn.Linear(ONE_HOT_2_ENCODING_SIZE, in_channels_2)
         self.lin_0 = torch.nn.Linear(in_channels_0, 1)
         self.lin_1 = torch.nn.Linear(in_channels_1, 1)
         self.lin_2 = torch.nn.Linear(in_channels_2, 1)
 
     def forward(self, graph):
-        x_0, x_1, x_2 = graph.graph_matrices["x_0"], graph.graph_matrices["x_1"], graph.graph_matrices["x_2"]
+        x_0, x_1 = graph.graph_matrices["x_0"], graph.graph_matrices["x_1"]
         adjacency_0, incidence_2_t = graph.graph_matrices["adjacency_0"], graph.graph_matrices["incidence_2_t"]
 
         x_0 = self.lin_0_input(x_0)
         x_1 = self.lin_1_input(x_1)
-        x_2 = self.lin_2_input(x_2)
-        x_0, x_1, x_2 = self.base_model(x_0, x_1, adjacency_0, incidence_2_t, x_2=x_2)
+        x_0, x_1, x_2 = self.base_model(x_0, x_1, adjacency_0, incidence_2_t)
         x_0 = self.lin_0(x_0)
         x_1 = self.lin_1(x_1)
         x_2 = self.lin_2(x_2)
@@ -64,6 +62,5 @@ class CCXNModel(torch.nn.Module):
 
         enhanced_graph.graph_matrices["x_0"] = x_0
         enhanced_graph.graph_matrices["x_1"] = x_1
-        enhanced_graph.graph_matrices["x_2"] = x_2
         enhanced_graph.graph_matrices["incidence_2_t"] = incidence_2_t
         enhanced_graph.graph_matrices["adjacency_0"] = adjacency_0
