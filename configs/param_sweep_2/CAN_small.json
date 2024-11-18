@@ -1,8 +1,8 @@
 {
     "name": "CAN_small",
     "model": "CANModel",
-    "hidden_dimensions": 10.0,
-    "n_layers": 4.0,
+    "hidden_dimensions": 10,
+    "n_layers": 4,
     "learning_rate": 0.01,
     "num_epochs": 50,
     "test_interval": 5,

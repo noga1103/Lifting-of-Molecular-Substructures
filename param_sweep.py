@@ -11,8 +11,8 @@ def update_learning_rate(config):
     updated_configs = []
     for layers_multiple, hidden_dim_multiple, name in MULTIPLES:
         updated_config = config.copy()
-        updated_config["n_layers"] = updated_config["n_layers"] * layers_multiple
-        updated_config["hidden_dimensions"] = updated_config["hidden_dimensions"] * hidden_dim_multiple
+        updated_config["n_layers"] = int(updated_config["n_layers"] * layers_multiple)
+        updated_config["hidden_dimensions"] = int(updated_config["hidden_dimensions"] * hidden_dim_multiple)
         updated_config["name"] = f"{config['name']}_{name}"
         updated_configs.append(updated_config)
     return updated_configs
