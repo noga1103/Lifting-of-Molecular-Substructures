@@ -12,8 +12,6 @@ from train.train_utils import (
 import torch
 import torch.nn.functional as F
 
-HIDDEN_DIMENSIONS = 30
-
 
 class HMCModel(torch.nn.Module):
     def __init__(
@@ -24,17 +22,17 @@ class HMCModel(torch.nn.Module):
         super().__init__()
 
         # Input linear layers
-        self.lin_0_input = torch.nn.Linear(ONE_HOT_0_ENCODING_SIZE, HIDDEN_DIMENSIONS)
-        self.lin_1_input = torch.nn.Linear(ONE_HOT_1_ENCODING_SIZE, HIDDEN_DIMENSIONS)
-        self.lin_2_input = torch.nn.Linear(ONE_HOT_2_ENCODING_SIZE, HIDDEN_DIMENSIONS)
+        self.lin_0_input = torch.nn.Linear(ONE_HOT_0_ENCODING_SIZE, hidden_dimensions)
+        self.lin_1_input = torch.nn.Linear(ONE_HOT_1_ENCODING_SIZE, hidden_dimensions)
+        self.lin_2_input = torch.nn.Linear(ONE_HOT_2_ENCODING_SIZE, hidden_dimensions)
 
-        channels_per_layer = [[(HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS, HIDDEN_DIMENSIONS)] * 3]
+        channels_per_layer = [[(hidden_dimensions, hidden_dimensions, hidden_dimensions)] * 3]
         self.base_model = HMC(channels_per_layer)
 
         # Output linear layers
-        self.lin_0 = torch.nn.Linear(HIDDEN_DIMENSIONS, 1)
-        self.lin_1 = torch.nn.Linear(HIDDEN_DIMENSIONS, 1)
-        self.lin_2 = torch.nn.Linear(HIDDEN_DIMENSIONS, 1)
+        self.lin_0 = torch.nn.Linear(hidden_dimensions, 1)
+        self.lin_1 = torch.nn.Linear(hidden_dimensions, 1)
+        self.lin_2 = torch.nn.Linear(hidden_dimensions, 1)
 
     def forward(self, graph):
         x_0 = graph.graph_matrices["x_0"]
@@ -60,8 +58,11 @@ class HMCModel(torch.nn.Module):
 
         # Calculate means and handle NaN values
         zero_dimensional_cells_mean = torch.nanmean(x_0, dim=0)
+        zero_dimensional_cells_mean[torch.isnan(zero_dimensional_cells_mean)] = 0
         one_dimensional_cells_mean = torch.nanmean(x_1, dim=0)
+        one_dimensional_cells_mean[torch.isnan(one_dimensional_cells_mean)] = 0
         two_dimensional_cells_mean = torch.nanmean(x_2, dim=0)
+        two_dimensional_cells_mean[torch.isnan(two_dimensional_cells_mean)] = 0
 
         return zero_dimensional_cells_mean + one_dimensional_cells_mean + two_dimensional_cells_mean
 
