@@ -1,7 +1,7 @@
 {
     "name": "HMC_deep",
     "model": "HMCModel",
-    "hidden_dimensions": 10.0,
+    "hidden_dimensions": 10,
     "n_layers": 16,
     "learning_rate": 0.01,
     "num_epochs": 50,
