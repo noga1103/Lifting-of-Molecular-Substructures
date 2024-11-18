@@ -1,20 +1,19 @@
 import os
 import json
 
-INPUT_DIR = "./configs/default"
+INPUT_DIR = "./configs/param_sweep_2"
 OUTPUT_DIR = "./configs/param_sweep_2"
-MULTIPLES = [(1, 1, "default"), (0.5, 2, "wide"), (2, 0.5, "deep"), (2, 2, "large"), (0.5, 0.5, "small")]  # n-layers, hidden_dim, name
 
 
 def update_learning_rate(config):
     """Update the learning_rate key in the config for each rate and return modified configs."""
     updated_configs = []
-    for layers_multiple, hidden_dim_multiple, name in MULTIPLES:
-        updated_config = config.copy()
-        updated_config["n_layers"] = int(updated_config["n_layers"] * layers_multiple)
-        updated_config["hidden_dimensions"] = int(updated_config["hidden_dimensions"] * hidden_dim_multiple)
-        updated_config["name"] = f"{config['name']}_{name}"
-        updated_configs.append(updated_config)
+    updated_config = config.copy()
+    updated_config["learning_rate"] = 0.001
+    updated_config["gradient_accumulation_steps"] = 400
+    updated_config["num_epochs"] = 100
+    updated_config["epoch_size"] = 5000
+    updated_configs.append(updated_config)
     return updated_configs
 
 
