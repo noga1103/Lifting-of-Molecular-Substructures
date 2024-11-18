@@ -1,7 +1,7 @@
 {
     "name": "CWN_deep",
     "model": "CWNModel",
-    "hidden_dimensions": 10,
+    "hidden_dimensions": 12,
     "n_layers": 16,
     "learning_rate": 0.01,
     "num_epochs": 50,

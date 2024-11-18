@@ -1,0 +1,226 @@
+output/99870.out
+    "name": "CAN_deep",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+=================
+output/99871.out
+    "name": "CAN_default",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+Parameters: 10723
+=================
+output/99872.out
+    "name": "CAN_large",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+Parameters: 80323
+=================
+output/99873.out
+    "name": "CAN_small",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+=================
+output/99874.out
+    "name": "CAN_wide",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+=================
+output/99875.out
+    "name": "CCXN_deep",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+=================
+output/99876.out
+    "name": "CCXN_default",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 10563
+=================
+output/99877.out
+    "name": "CCXN_large",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 77955
+=================
+output/99878.out
+    "name": "CCXN_small",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+=================
+output/99879.out
+    "name": "CCXN_wide",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+=================
+output/99880.out
+    "name": "CWN_deep",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+=================
+output/99881.out
+    "name": "CWN_default",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 14743
+=================
+output/99882.out
+    "name": "CWN_large",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 109003
+=================
+output/99883.out
+    "name": "CWN_small",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+=================
+output/99884.out
+    "name": "CWN_wide",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+=================
+output/99885.out
+    "name": "HMC_deep",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+Parameters: 12063
+=================
+output/99891.out
+    "name": "CAN_deep",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+=================
+output/99892.out
+    "name": "CAN_default",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+Parameters: 10723
+Epoch:50, Train Loss: 1.3296, Test Loss: 1.4882, R2: 0.1564, MAE: 0.7634, RMSE: 1.2199
+=================
+output/99893.out
+    "name": "CAN_large",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+Parameters: 80323
+Epoch:25, Train Loss: 1.6448, Test Loss: 1.5806, R2: 0.1513, MAE: 0.7551, RMSE: 1.2572
+=================
+output/99894.out
+    "name": "CAN_small",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+=================
+output/99895.out
+    "name": "CAN_wide",
+    "model": "CANModel",
+    "learning_rate": 0.01,
+Parameters: 20803
+Epoch:50, Train Loss: 1.4533, Test Loss: 1.4108, R2: 0.1385, MAE: 0.8059, RMSE: 1.1878
+=================
+output/99896.out
+    "name": "CCXN_deep",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 5667
+Epoch:50, Train Loss: 1.7955, Test Loss: 1.7659, R2: 0.0247, MAE: 0.8978, RMSE: 1.3289
+=================
+output/99897.out
+    "name": "CCXN_default",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 10563
+Epoch:50, Train Loss: 1.7275, Test Loss: 1.6496, R2: 0.0725, MAE: 0.8290, RMSE: 1.2844
+=================
+output/99898.out
+    "name": "CCXN_large",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 77955
+Epoch:40, Train Loss: 1.6104, Test Loss: 2.1539, R2: 0.0615, MAE: 0.8703, RMSE: 1.4676
+=================
+output/99899.out
+    "name": "CCXN_small",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+Parameters: 1635
+Epoch:30, Train Loss: 1.5379, Test Loss: 1.5061, R2: 0.0819, MAE: 0.8271, RMSE: 1.2272
+=================
+output/99900.out
+    "name": "CCXN_wide",
+    "model": "CCXNModel",
+    "learning_rate": 0.01,
+=================
+output/99901.out
+    "name": "CWN_deep",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 7153
+Epoch:10, Train Loss: 2718561675903191341607157760.0000, Test Loss: 138379234490174022598816432128.0000, R2: -72493361065994989420748472320.0000, MAE: 9917547665673.0039, RMSE: 371993594141552.9375
+=================
+output/99902.out
+    "name": "CWN_default",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 14743
+Epoch:20, Train Loss: 179.2210, Test Loss: 4.9158, R2: -1.9067, MAE: 1.5412, RMSE: 2.2172
+=================
+output/99903.out
+    "name": "CWN_large",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 109003
+Epoch:10, Train Loss: 1495141368853638856262096519168.0000, Test Loss: 1130105599667571037548052480.0000, R2: -704487168819804068292591616.0000, MAE: 728162145137.7861, RMSE: 33617043099716.7227
+=================
+output/99904.out
+    "name": "CWN_small",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 2233
+Epoch:50, Train Loss: 1.3523, Test Loss: 1.3114, R2: 0.1825, MAE: 0.7467, RMSE: 1.1452
+=================
+output/99905.out
+    "name": "CWN_wide",
+    "model": "CWNModel",
+    "learning_rate": 0.01,
+Parameters: 31723
+Epoch:50, Train Loss: 1.8847, Test Loss: 1.9148, R2: -0.1435, MAE: 0.9972, RMSE: 1.3838
+=================
+output/99906.out
+    "name": "HMC_deep",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+=================
+output/99907.out
+    "name": "HMC_default",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+Parameters: 12063
+Epoch:15, Train Loss: 1.7706, Test Loss: 1.7274, R2: 0.0609, MAE: 0.8323, RMSE: 1.3143
+=================
+output/99908.out
+    "name": "HMC_large",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+Parameters: 12063
+Epoch:10, Train Loss: 1.8003, Test Loss: 1.7648, R2: 0.0724, MAE: 0.8401, RMSE: 1.3285
+=================
+output/99909.out
+    "name": "HMC_small",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+Parameters: 12063
+=================
+output/99910.out
+    "name": "HMC_wide",
+    "model": "HMCModel",
+    "learning_rate": 0.01,
+Parameters: 12063
+Epoch:35, Train Loss: 1.8292, Test Loss: 1.7558, R2: 0.0831, MAE: 0.8198, RMSE: 1.3251
+=================
+output/99914.out
+=================
+output/99915.out
+=================
+output/99916.out
+=================
+output/99918.out
+=================
