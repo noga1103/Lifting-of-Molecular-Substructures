@@ -3,7 +3,7 @@ import numpy as np
 from torch_geometric.utils import to_undirected
 from topomodelx.nn.hypergraph.hnhn import HNHN
 
-class EnhancedHNHN(torch.nn.Module):
+class HNHN(torch.nn.Module):
     def __init__(
         self,
         in_channels_0,
