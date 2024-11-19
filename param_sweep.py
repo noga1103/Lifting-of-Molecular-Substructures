@@ -1,7 +1,7 @@
 import os
 import json
 
-INPUT_DIR = "./configs/param_sweep"
+INPUT_DIR = "./configs/default"
 OUTPUT_DIR = "./configs/param_sweep"
 
 
