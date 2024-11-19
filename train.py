@@ -6,6 +6,7 @@ import torch
 from train.can import CANModel
 from train.ccxn import CCXNModel
 from train.cwn import CWNModel
+from train.hnhn import HNHNModel
 import wandb
 
 
@@ -40,6 +41,8 @@ def initialize_model(config):
     elif config["model"] == "HMCModel":
         model = HMCModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
+        model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
+    elif config["model"] == "HNHNModel":
         model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
