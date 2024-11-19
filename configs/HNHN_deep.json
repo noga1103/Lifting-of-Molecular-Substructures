@@ -1,0 +1,13 @@
+{
+    "name": "HNHN_deep",
+    "model": "HNHNModel",
+    "hidden_dimensions": 12,
+    "n_layers": 16,
+    "learning_rate": 0.001,
+    "num_epochs": 100,
+    "test_interval": 5,
+    "test_size": 0.2,
+    "dataset": "zinc",
+    "gradient_accumulation_steps": 400,
+    "epoch_size": 5000
+}
