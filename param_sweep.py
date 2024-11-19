@@ -2,7 +2,7 @@ import os
 import json
 
 INPUT_DIR = "./configs/default"
-OUTPUT_DIR = "./configs/param_sweep"
+OUTPUT_DIR = "./configs/param_sweep_new"
 
 
 def update_learning_rate(config):
