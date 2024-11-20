@@ -24,8 +24,13 @@ class HNHNModel(torch.nn.Module):
         super().__init__()
         
         # Create a dummy incidence matrix for initialization
-        # This will be updated in forward pass
-        dummy_incidence = torch.zeros((1, 1), device=DEVICE).to_sparse_coo()
+        # Ensure it's on the correct device
+        dummy_size = 10  # Small size for initialization
+        dummy_incidence = torch.zeros((dummy_size, dummy_size), device=DEVICE, dtype=WEIGHT_DTYPE)
+        # Add some values to ensure it's not empty
+        dummy_incidence[0, 0] = 1
+        dummy_incidence[1, 1] = 1
+        dummy_incidence = dummy_incidence.to_sparse_coo()
         
         # Define the model
         self.base_model = HNHN(
@@ -33,17 +38,17 @@ class HNHNModel(torch.nn.Module):
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
             incidence_1=dummy_incidence
-        )
+        ).to(DEVICE)
 
         # Readout
-        self.linear = torch.nn.Linear(hidden_dimensions, 1)
+        self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
         self.out_pool = True
 
     def create_hypergraph_incidence(self, graph):
         """Create hypergraph incidence matrix from graph."""
         # Get edge index from graph
         edge_index = graph.data.combinatorial_complex.incidence_matrix(0, 1).todense()
-        edge_index = torch.from_numpy(edge_index).nonzero().t()
+        edge_index = torch.from_numpy(edge_index).nonzero().t().to(DEVICE)
         edge_index = to_undirected(edge_index)
         
         # Create one-hop neighborhoods
@@ -58,9 +63,13 @@ class HNHNModel(torch.nn.Module):
         hyperedges = []
         for neighborhood in one_hop_neighborhoods:
             neighborhood = tuple(sorted(neighborhood))
-            if neighborhood not in unique_hyperedges:
+            if neighborhood not in unique_hyperedges and len(neighborhood) > 0:
                 hyperedges.append(list(neighborhood))
                 unique_hyperedges.add(neighborhood)
+        
+        if not hyperedges:
+            # If no valid hyperedges, create a minimal valid hypergraph
+            hyperedges = [[0, 1]]
         
         # Create incidence matrix
         incidence = np.zeros((num_nodes, len(hyperedges)))
@@ -77,7 +86,7 @@ class HNHNModel(torch.nn.Module):
 
     def forward(self, graph):
         # Get node features
-        x_0 = graph.graph_matrices["x_0"]
+        x_0 = graph.graph_matrices["x_0"].to(DEVICE)
         
         # Create hypergraph incidence matrix
         incidence_1 = self.create_hypergraph_incidence(graph)
@@ -98,7 +107,7 @@ class HNHNModel(torch.nn.Module):
         """Add required matrices to the graph object."""
         cc = enhanced_graph.data.combinatorial_complex
         
-        # Generate features
+        # Generate features and ensure they're on the correct device
         x_0 = generate_x_0(cc).to(DEVICE)
         x_1 = generate_x_1_combinatorial(cc).to(DEVICE)
         x_2 = generate_x_2_combinatorial(cc).to(DEVICE)
