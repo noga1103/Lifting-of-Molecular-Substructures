@@ -18,43 +18,49 @@ class HNHNModel(torch.nn.Module):
     def __init__(self, hidden_dimensions, n_layers=2):
         super().__init__()
         
-        # Move model to GPU first
-        self = self.to(DEVICE)
+        # Create normalization matrices first
+        indices = torch.zeros((2, 1), dtype=torch.long)
+        values = torch.zeros(1)
+        size = (ONE_HOT_0_ENCODING_SIZE, 1)
         
-        # Create dummy sparse tensor on GPU
-        indices = torch.zeros((2, 1), dtype=torch.long, device=DEVICE)
-        values = torch.zeros(1, device=DEVICE)
-        dummy_incidence = torch.sparse_coo_tensor(
-            indices=indices,
-            values=values,
-            size=(ONE_HOT_0_ENCODING_SIZE, 1),
-            device=DEVICE
-        )
+        # Create sparse tensor
+        self.dummy_incidence = torch.sparse_coo_tensor(indices, values, size)
         
-        # Create HNHN with all internal matrices on GPU
+        # Create normalization matrices explicitly for the HNHN layer
+        n_nodes, n_edges = size
+        
+        # Initialize normalization tensors
+        edge_cardinality = torch.ones(1) ** (-1.5)  # alpha default is -1.5
+        node_cardinality = torch.ones(ONE_HOT_0_ENCODING_SIZE) ** (-0.5)  # beta default is -0.5
+        
+        D0_left_alpha_inverse = torch.eye(n_nodes) / edge_cardinality[0]
+        D1_left_beta_inverse = torch.eye(1) / node_cardinality.sum()
+        D1_right_alpha = torch.eye(1) * edge_cardinality
+        D0_right_beta = torch.diag(node_cardinality)
+        
+        # Move everything to GPU before HNHN creation
+        matrices = {
+            'dummy_incidence': self.dummy_incidence.to(DEVICE),
+            'D0_left_alpha_inverse': D0_left_alpha_inverse.to(DEVICE),
+            'D1_left_beta_inverse': D1_left_beta_inverse.to(DEVICE),
+            'D1_right_alpha': D1_right_alpha.to(DEVICE),
+            'D0_right_beta': D0_right_beta.to(DEVICE)
+        }
+        
+        # Initialize HNHN with pre-computed matrices on GPU
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
-            incidence_1=dummy_incidence
+            incidence_1=matrices['dummy_incidence']
         )
         
-        # Ensure all normalization matrices are on GPU
-        for layer in self.base_model.layers:
-            if hasattr(layer, 'D0_left_alpha_inverse'):
-                layer.D0_left_alpha_inverse = layer.D0_left_alpha_inverse.to(DEVICE)
-            if hasattr(layer, 'D1_left_beta_inverse'):
-                layer.D1_left_beta_inverse = layer.D1_left_beta_inverse.to(DEVICE)
-            if hasattr(layer, 'D1_right_alpha'):
-                layer.D1_right_alpha = layer.D1_right_alpha.to(DEVICE)
-            if hasattr(layer, 'D0_right_beta'):
-                layer.D0_right_beta = layer.D0_right_beta.to(DEVICE)
-        
+        # Move the rest to GPU
         self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
         self.out_pool = True
 
     def forward(self, graph):
-        x_0 = graph.graph_matrices["x_0"].to(DEVICE)
+        x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
         
         incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE)
