@@ -17,33 +17,29 @@ class HNHNModel(torch.nn.Module):
     def __init__(self, hidden_dimensions, n_layers=2):
         super().__init__()
         
-        # Create dummy incidence matrix directly on device
+        # Create dummy incidence matrix
         dummy_incidence = torch.sparse_coo_tensor(
-            indices=torch.zeros((2, 1), dtype=torch.long).to(DEVICE),
-            values=torch.zeros(1).to(DEVICE),
-            size=(ONE_HOT_0_ENCODING_SIZE, 1),
-            device=DEVICE
+            indices=torch.zeros((2, 1), dtype=torch.long),
+            values=torch.zeros(1),
+            size=(ONE_HOT_0_ENCODING_SIZE, 1)
         )
         
-        # Define model with device-aware dummy matrix
+        # Initialize base model with CPU tensors
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
             incidence_1=dummy_incidence
-        )
+        ).to(DEVICE)  # Move entire model to device
         
-        self.linear = torch.nn.Linear(hidden_dimensions, 1)
+        self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
         self.out_pool = True
         
     def forward(self, graph):
         x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
         
-        # Get incidence matrix directly from CC
         incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE).to(WEIGHT_DTYPE)
-        
-        # Convert to sparse on device
         indices = torch.nonzero(incidence_1).t()
         values = incidence_1[indices[0], indices[1]]
         incidence_1 = torch.sparse_coo_tensor(
