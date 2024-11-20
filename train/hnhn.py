@@ -13,13 +13,17 @@ from train.train_utils import (
     generate_x_2_combinatorial,
     EnhancedGraph
 )
+
 class HNHNModel(torch.nn.Module):
     def __init__(self, hidden_dimensions, n_layers=2):
         super().__init__()
         
-        # All tensors created directly on GPU
-        indices = torch.zeros((2, 1), dtype=torch.long, device=DEVICE)
-        values = torch.zeros(1, device=DEVICE)
+        # Move the model to GPU first
+        self.to(DEVICE)
+        
+        # Create sparse tensor directly on GPU
+        indices = torch.zeros((2, 1), dtype=torch.long).to(DEVICE)
+        values = torch.zeros(1).to(DEVICE)
         dummy_incidence = torch.sparse_coo_tensor(
             indices=indices,
             values=values,
@@ -27,25 +31,28 @@ class HNHNModel(torch.nn.Module):
             device=DEVICE
         )
         
-        # Initialize HNHN model with GPU tensor
+        # Create HNHN directly on GPU
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
             incidence_1=dummy_incidence
-        ).to(DEVICE)
+        )
         
-        # Linear layer on GPU
-        self.linear = torch.nn.Linear(hidden_dimensions, 1, device=DEVICE)
+        # Create linear layer on GPU
+        self.linear = torch.nn.Linear(hidden_dimensions, 1)
         self.out_pool = True
+        
+        # Ensure all parameters are on GPU
+        for param in self.parameters():
+            param.data = param.data.to(DEVICE)
 
     def forward(self, graph):
-        x_0 = graph.graph_matrices["x_0"]
+        x_0 = graph.graph_matrices["x_0"].to(DEVICE)
         cc = graph.data.combinatorial_complex
         
-        # Create incidence matrix directly on GPU
         incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE).to(WEIGHT_DTYPE)
-        indices = torch.nonzero(incidence_1, device=DEVICE).t()
+        indices = torch.nonzero(incidence_1).t()
         values = incidence_1[indices[0], indices[1]]
         incidence_1 = torch.sparse_coo_tensor(
             indices=indices,
