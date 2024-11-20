@@ -23,46 +23,36 @@ class HNHNModel(torch.nn.Module):
         super().__init__()
         
         dummy_incidence = torch.sparse_coo_tensor(
-            indices=torch.zeros((2, 1), dtype=torch.long),
-            values=torch.zeros(1),
+            indices=torch.zeros((2, 1), dtype=torch.long).to(DEVICE),
+            values=torch.zeros(1).to(DEVICE),
             size=(ONE_HOT_0_ENCODING_SIZE, 1)
-        )
+        ).to(DEVICE)
         
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
             incidence_1=dummy_incidence
-        )
+        ).to(DEVICE)
         
-        self.linear = torch.nn.Linear(hidden_dimensions, 1)
+        self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
         self.out_pool = True
 
     def forward(self, graph):
         x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
         
-        # Get incidence matrix and move to correct device
-        incidence_1 = cc.incidence_matrix(0, 1)
-        incidence_1 = torch.from_numpy(incidence_1.todense()).to(DEVICE, dtype=WEIGHT_DTYPE)
-        
-        # Convert to sparse and ensure on correct device
+        incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE, dtype=WEIGHT_DTYPE)
         indices = torch.nonzero(incidence_1).t()
         values = incidence_1[indices[0], indices[1]]
         incidence_1 = torch.sparse_coo_tensor(
             indices=indices,
             values=values,
-            size=incidence_1.size(),
-            device=DEVICE
+            size=incidence_1.size()
         ).to(DEVICE)
         
-        # Update model's incidence matrix and ensure it's on correct device
         self.base_model.incidence_1 = incidence_1
-        
-        # Process through model
         x_0_processed, _ = self.base_model(x_0, incidence_1=incidence_1)
-        
-        # Pool and compute final output
         x = torch.max(x_0_processed, dim=0)[0] if self.out_pool else x_0_processed
         return self.linear(x)
 
