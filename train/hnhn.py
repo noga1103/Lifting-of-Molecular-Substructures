@@ -1,4 +1,18 @@
-```python
+from dataclasses import dataclass
+import torch
+import numpy as np
+from topomodelx.nn.hypergraph.hnhn import HNHN
+from train.train_utils import (
+    DEVICE,
+    WEIGHT_DTYPE,
+    ONE_HOT_0_ENCODING_SIZE,
+    ONE_HOT_1_ENCODING_SIZE,
+    ONE_HOT_2_ENCODING_SIZE,
+    generate_x_0,
+    generate_x_1_combinatorial,
+    generate_x_2_combinatorial,
+    EnhancedGraph
+)
 class HNHNModel(torch.nn.Module):
     def __init__(
         self,
