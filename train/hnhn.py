@@ -88,4 +88,4 @@ class HNHNModel(torch.nn.Module):
             "x_1": x_1,
             "x_2": x_2,
         }
-```
+
