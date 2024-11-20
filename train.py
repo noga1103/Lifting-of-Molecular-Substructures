@@ -43,7 +43,7 @@ def initialize_model(config):
         model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "HNHNModel":
         model = HNHNModel(hidden_dimensions, n_layers=config["n_layers"])
-    elif config["model"] == "HNHNModel":
+    elif config["model"] == "UNISAGEModel":
         model = UNISAGEModel(hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
