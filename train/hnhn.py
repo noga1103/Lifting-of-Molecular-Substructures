@@ -18,12 +18,12 @@ class HNHNModel(torch.nn.Module):
     def __init__(self, hidden_dimensions, n_layers=2):
         super().__init__()
         
-        # Move the model to GPU first
-        self.to(DEVICE)
+        # Move model to GPU first
+        self = self.to(DEVICE)
         
-        # Create sparse tensor directly on GPU
-        indices = torch.zeros((2, 1), dtype=torch.long).to(DEVICE)
-        values = torch.zeros(1).to(DEVICE)
+        # Create dummy sparse tensor on GPU
+        indices = torch.zeros((2, 1), dtype=torch.long, device=DEVICE)
+        values = torch.zeros(1, device=DEVICE)
         dummy_incidence = torch.sparse_coo_tensor(
             indices=indices,
             values=values,
@@ -31,7 +31,7 @@ class HNHNModel(torch.nn.Module):
             device=DEVICE
         )
         
-        # Create HNHN directly on GPU
+        # Create HNHN with all internal matrices on GPU
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
@@ -39,19 +39,25 @@ class HNHNModel(torch.nn.Module):
             incidence_1=dummy_incidence
         )
         
-        # Create linear layer on GPU
-        self.linear = torch.nn.Linear(hidden_dimensions, 1)
-        self.out_pool = True
+        # Ensure all normalization matrices are on GPU
+        for layer in self.base_model.layers:
+            if hasattr(layer, 'D0_left_alpha_inverse'):
+                layer.D0_left_alpha_inverse = layer.D0_left_alpha_inverse.to(DEVICE)
+            if hasattr(layer, 'D1_left_beta_inverse'):
+                layer.D1_left_beta_inverse = layer.D1_left_beta_inverse.to(DEVICE)
+            if hasattr(layer, 'D1_right_alpha'):
+                layer.D1_right_alpha = layer.D1_right_alpha.to(DEVICE)
+            if hasattr(layer, 'D0_right_beta'):
+                layer.D0_right_beta = layer.D0_right_beta.to(DEVICE)
         
-        # Ensure all parameters are on GPU
-        for param in self.parameters():
-            param.data = param.data.to(DEVICE)
+        self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
+        self.out_pool = True
 
     def forward(self, graph):
         x_0 = graph.graph_matrices["x_0"].to(DEVICE)
         cc = graph.data.combinatorial_complex
         
-        incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE).to(WEIGHT_DTYPE)
+        incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE)
         indices = torch.nonzero(incidence_1).t()
         values = incidence_1[indices[0], indices[1]]
         incidence_1 = torch.sparse_coo_tensor(
