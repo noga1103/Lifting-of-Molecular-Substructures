@@ -42,20 +42,27 @@ class HNHNModel(torch.nn.Module):
         x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
         
-        incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE).to(WEIGHT_DTYPE)
+        # Get incidence matrix and move to correct device
+        incidence_1 = cc.incidence_matrix(0, 1)
+        incidence_1 = torch.from_numpy(incidence_1.todense()).to(DEVICE, dtype=WEIGHT_DTYPE)
         
-        if not incidence_1.is_sparse:
-            indices = torch.nonzero(incidence_1).t()
-            values = incidence_1[indices[0], indices[1]]
-            incidence_1 = torch.sparse_coo_tensor(
-                indices=indices,
-                values=values,
-                size=incidence_1.size()
-            )
+        # Convert to sparse and ensure on correct device
+        indices = torch.nonzero(incidence_1).t()
+        values = incidence_1[indices[0], indices[1]]
+        incidence_1 = torch.sparse_coo_tensor(
+            indices=indices,
+            values=values,
+            size=incidence_1.size(),
+            device=DEVICE
+        ).to(DEVICE)
         
+        # Update model's incidence matrix and ensure it's on correct device
         self.base_model.incidence_1 = incidence_1
+        
+        # Process through model
         x_0_processed, _ = self.base_model(x_0, incidence_1=incidence_1)
         
+        # Pool and compute final output
         x = torch.max(x_0_processed, dim=0)[0] if self.out_pool else x_0_processed
         return self.linear(x)
 
