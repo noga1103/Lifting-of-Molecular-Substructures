@@ -43,14 +43,25 @@ class HNHNModel(torch.nn.Module):
         self.out_pool = True  # For graph-level tasks
 
     def forward(self, graph):
-        # Get features and incidence matrix
         x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
-        hg = cc.to_hypergraph()
-        incidence_1 = hg.incidence_matrix()
-        incidence_1 = torch.from_numpy(incidence_1.todense()).to(DEVICE).to(WEIGHT_DTYPE)
         
-        # Convert to sparse format if needed
+        # Build hypergraph edges from CC
+        edges = []
+        for edge_idx in range(cc.boundary_1.shape[1]):
+            nodes = cc.boundary_1[:, edge_idx].nonzero()[0].tolist()
+            if nodes:  # Only add non-empty edges
+                edges.append(nodes)
+                
+        # Create incidence matrix
+        num_nodes = cc.boundary_1.shape[0]
+        incidence_1 = np.zeros((num_nodes, len(edges)))
+        for edge_idx, nodes in enumerate(edges):
+            incidence_1[nodes, edge_idx] = 1
+            
+        incidence_1 = torch.from_numpy(incidence_1).to(DEVICE).to(WEIGHT_DTYPE)
+        
+        # Convert to sparse format
         if not incidence_1.is_sparse:
             indices = torch.nonzero(incidence_1).t()
             values = incidence_1[indices[0], indices[1]]
@@ -60,13 +71,9 @@ class HNHNModel(torch.nn.Module):
                 size=incidence_1.size()
             )
         
-        # Update the model's incidence matrix
         self.base_model.incidence_1 = incidence_1
-        
-        # Base model
         x_0_processed, _ = self.base_model(x_0, incidence_1=incidence_1)
         
-        # Pool over all nodes in the hypergraph
         x = torch.max(x_0_processed, dim=0)[0] if self.out_pool else x_0_processed
         return self.linear(x)
 
