@@ -15,47 +15,27 @@ from train.train_utils import (
 )
 
 class HNHNModel(torch.nn.Module):
-    def __init__(self, hidden_dimensions, n_layers=2):
+    def __init__(
+        self,
+        hidden_dimensions,
+        n_layers=2,
+    ):
         super().__init__()
         
-        # Create normalization matrices first
-        indices = torch.zeros((2, 1), dtype=torch.long)
-        values = torch.zeros(1)
-        size = (ONE_HOT_0_ENCODING_SIZE, 1)
+        # Create dummy incidence matrix directly on correct device and dtype
+        dummy_incidence = torch.sparse_coo_tensor(
+            indices=torch.zeros((2, 1), dtype=torch.long, device=DEVICE),
+            values=torch.zeros(1, device=DEVICE, dtype=WEIGHT_DTYPE),
+            size=(ONE_HOT_0_ENCODING_SIZE, 1)
+        )
         
-        # Create sparse tensor
-        self.dummy_incidence = torch.sparse_coo_tensor(indices, values, size)
-        
-        # Create normalization matrices explicitly for the HNHN layer
-        n_nodes, n_edges = size
-        
-        # Initialize normalization tensors
-        edge_cardinality = torch.ones(1) ** (-1.5)  # alpha default is -1.5
-        node_cardinality = torch.ones(ONE_HOT_0_ENCODING_SIZE) ** (-0.5)  # beta default is -0.5
-        
-        D0_left_alpha_inverse = torch.eye(n_nodes) / edge_cardinality[0]
-        D1_left_beta_inverse = torch.eye(1) / node_cardinality.sum()
-        D1_right_alpha = torch.eye(1) * edge_cardinality
-        D0_right_beta = torch.diag(node_cardinality)
-        
-        # Move everything to GPU before HNHN creation
-        matrices = {
-            'dummy_incidence': self.dummy_incidence.to(DEVICE),
-            'D0_left_alpha_inverse': D0_left_alpha_inverse.to(DEVICE),
-            'D1_left_beta_inverse': D1_left_beta_inverse.to(DEVICE),
-            'D1_right_alpha': D1_right_alpha.to(DEVICE),
-            'D0_right_beta': D0_right_beta.to(DEVICE)
-        }
-        
-        # Initialize HNHN with pre-computed matrices on GPU
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
-            incidence_1=matrices['dummy_incidence']
-        )
+            incidence_1=dummy_incidence
+        ).to(DEVICE)
         
-        # Move the rest to GPU
         self.linear = torch.nn.Linear(hidden_dimensions, 1).to(DEVICE)
         self.out_pool = True
 
@@ -63,26 +43,32 @@ class HNHNModel(torch.nn.Module):
         x_0 = graph.graph_matrices["x_0"]
         cc = graph.data.combinatorial_complex
         
-        incidence_1 = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE)
-        indices = torch.nonzero(incidence_1).t()
-        values = incidence_1[indices[0], indices[1]]
+        # Convert incidence matrix to sparse tensor directly on correct device
+        incidence_dense = torch.from_numpy(cc.incidence_matrix(0, 1).todense()).to(DEVICE).to(WEIGHT_DTYPE)
+        indices = torch.nonzero(incidence_dense, as_tuple=True)
+        values = incidence_dense[indices]
         incidence_1 = torch.sparse_coo_tensor(
-            indices=indices,
+            indices=torch.stack(indices),
             values=values,
-            size=incidence_1.size(),
+            size=incidence_dense.size(),
             device=DEVICE
         )
         
         self.base_model.incidence_1 = incidence_1
         x_0_processed, _ = self.base_model(x_0, incidence_1=incidence_1)
+        
         x = torch.max(x_0_processed, dim=0)[0] if self.out_pool else x_0_processed
         return self.linear(x)
 
     @staticmethod
     def add_graph_matrices(enhanced_graph):
         cc = enhanced_graph.data.combinatorial_complex
+        x_0 = generate_x_0(cc).to(DEVICE)
+        x_1 = generate_x_1_combinatorial(cc).to(DEVICE)
+        x_2 = generate_x_2_combinatorial(cc).to(DEVICE)
+        
         enhanced_graph.graph_matrices = {
-            "x_0": generate_x_0(cc).to(DEVICE),
-            "x_1": generate_x_1_combinatorial(cc).to(DEVICE),
-            "x_2": generate_x_2_combinatorial(cc).to(DEVICE)
+            "x_0": x_0,
+            "x_1": x_1,
+            "x_2": x_2,
         }
