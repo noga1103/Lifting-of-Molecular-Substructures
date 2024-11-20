@@ -6,10 +6,7 @@ from topomodelx.nn.hypergraph.hnhn import HNHN
 class HNHNModel(torch.nn.Module):
     def __init__(
         self,
-        in_channels_0,
-        in_channels_1,
-        in_channels_2,
-        hidden_channels,
+        hidden_dimensions,
         n_layers=2,
     ):
         super().__init__()
