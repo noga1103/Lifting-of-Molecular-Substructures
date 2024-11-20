@@ -7,10 +7,9 @@ from train.can import CANModel
 from train.ccxn import CCXNModel
 from train.cwn import CWNModel
 from train.hnhn import HNHNModel
-import wandb
-
-
+from train.unisage import UNISAGEModel
 from train.hmc import HMCModel
+import wandb
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
 import json
 import sys
@@ -43,7 +42,9 @@ def initialize_model(config):
     elif config["model"] == "CWNModel":
         model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "HNHNModel":
-        model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
+        model = HNHNModel(hidden_dimensions, n_layers=config["n_layers"])
+    elif config["model"] == "HNHNModel":
+        model = UNISAGEModel(hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
     model = model.to(DEVICE)
