@@ -14,64 +14,48 @@ from train.train_utils import (
     EnhancedGraph
 )
 class HNHNModel(torch.nn.Module):
-    def __init__(
-        self,
-        hidden_dimensions,
-        n_layers=2,
-    ):
+    def __init__(self, hidden_dimensions, n_layers=2):
         super().__init__()
         
-        # Move everything to GPU first
-        self.device = DEVICE
-        
-        # Create dummy incidence matrix on correct device
-        indices = torch.zeros((2, 1), dtype=torch.long).to(self.device)
-        values = torch.zeros(1).to(self.device)
+        # Initialize on CPU first
+        indices = torch.zeros((2, 1), dtype=torch.long)
+        values = torch.zeros(1)
         dummy_incidence = torch.sparse_coo_tensor(
             indices=indices,
             values=values,
-            size=(ONE_HOT_0_ENCODING_SIZE, 1),
-            device=self.device
+            size=(ONE_HOT_0_ENCODING_SIZE, 1)
         )
         
-        # Create and move model to device before initialization
+        # Create base model on CPU
         self.base_model = HNHN(
             in_channels=ONE_HOT_0_ENCODING_SIZE,
             hidden_channels=hidden_dimensions,
             n_layers=n_layers,
-            incidence_1=dummy_incidence,
+            incidence_1=dummy_incidence
         )
-        self.base_model = self.base_model.to(self.device)
         
-        # Move linear layer to device
-        self.linear = torch.nn.Linear(hidden_dimensions, 1).to(self.device)
+        self.linear = torch.nn.Linear(hidden_dimensions, 1)
         self.out_pool = True
-        
-        # Ensure all internal tensors are on correct device
-        self = self.to(self.device)
+
+        # Move to device after full initialization
+        self.to(DEVICE)
 
     def forward(self, graph):
-        x_0 = graph.graph_matrices["x_0"].to(self.device)
+        x_0 = graph.graph_matrices["x_0"].to(DEVICE)
         cc = graph.data.combinatorial_complex
         
-        # Process incidence matrix
         incidence_1 = cc.incidence_matrix(0, 1)
-        incidence_1 = torch.from_numpy(incidence_1.todense()).to(self.device, dtype=WEIGHT_DTYPE)
+        incidence_1 = torch.from_numpy(incidence_1.todense()).to(DEVICE, dtype=WEIGHT_DTYPE)
         
-        # Create sparse tensor on correct device
         indices = torch.nonzero(incidence_1).t()
         values = incidence_1[indices[0], indices[1]]
         incidence_1 = torch.sparse_coo_tensor(
             indices=indices,
             values=values,
-            size=incidence_1.size(),
-            device=self.device
-        )
+            size=incidence_1.size()
+        ).to(DEVICE)
         
-        # Update model's incidence matrix
         self.base_model.incidence_1 = incidence_1
-        
-        # Forward pass
         x_0_processed, _ = self.base_model(x_0, incidence_1=incidence_1)
         x = torch.max(x_0_processed, dim=0)[0] if self.out_pool else x_0_processed
         return self.linear(x)
