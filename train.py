@@ -7,7 +7,7 @@ from train.can import CANModel
 from train.ccxn import CCXNModel
 from train.cwn import CWNModel
 from train.hnhn import HNHNModel
-from train.unisage import UNISAGEModel
+
 from train.hmc import HMCModel
 import wandb
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
@@ -17,7 +17,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
-
+# from train.unisage import UNISAGEModel
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY", None)
 
