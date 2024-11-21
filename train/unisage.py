@@ -13,7 +13,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 
-class UniSAGEModel(torch.nn.Module):
+class UNISAGEModel(torch.nn.Module):
     def __init__(
         self,
         hidden_dimensions,
