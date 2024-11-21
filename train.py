@@ -6,10 +6,10 @@ import torch
 from train.can import CANModel
 from train.ccxn import CCXNModel
 from train.cwn import CWNModel
-import wandb
-
+from train.hnhn import HNHNModel
 
 from train.hmc import HMCModel
+import wandb
 from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
 import json
 import sys
@@ -17,7 +17,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
-
+# from train.unisage import UNISAGEModel
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY", None)
 
@@ -41,6 +41,10 @@ def initialize_model(config):
         model = HMCModel(hidden_dimensions, n_layers=config["n_layers"])
     elif config["model"] == "CWNModel":
         model = CWNModel(hidden_dimensions, n_layers=config["n_layers"])
+    elif config["model"] == "HNHNModel":
+        model = HNHNModel(hidden_dimensions, n_layers=config["n_layers"])
+    elif config["model"] == "UNISAGEModel":
+        model = UNISAGEModel(hidden_dimensions, n_layers=config["n_layers"])
     else:
         raise ValueError("Unknown model: {}".format(config["model"]))
     model = model.to(DEVICE)
