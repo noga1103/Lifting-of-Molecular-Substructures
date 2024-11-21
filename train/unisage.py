@@ -67,16 +67,13 @@ class UNISAGEModel(torch.nn.Module):
     @staticmethod
        
     def convert_to_hypergraph(cc):
-    
-        print("Number of nodes:", len(list(cc.nodes)))
-        print("Number of cells[0]:", len(list(cc.cells[0].keys())))
-        print("Incidence matrix shape:", cc.incidence_matrix(0, 1).shape)
+ 
         # Get incidence matrix directly for edges (dim 0 to 1)
         incidence_1 = cc.incidence_matrix(0, 1)
         incidence_2 = cc.incidence_matrix(0, 2) if 2 in cc.cells else None
         
         # Get vertices and convert to dense matrices
-        vertices = list(cc.cells[0].keys())
+        vertices = list(cc.nodes)
         incidence_1_dense = incidence_1.todense()
         incidence_2_dense = incidence_2.todense() if incidence_2 is not None else None
         
