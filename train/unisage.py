@@ -66,11 +66,8 @@ class UNISAGEModel(torch.nn.Module):
 
     @staticmethod
     def convert_to_hypergraph(cc):
-     
-        # Get all cells of dimension 0 (vertices)
         vertices = list(cc.cells[0].keys())
         
-        # Get all cells of dimension 1 and 2 to create hyperedges
         edges = list(cc.cells[1].keys()) if 1 in cc.cells else []
         faces = list(cc.cells[2].keys()) if 2 in cc.cells else []
         
@@ -78,27 +75,25 @@ class UNISAGEModel(torch.nn.Module):
         hyperedges = []
         vertex_to_idx = {v: i for i, v in enumerate(vertices)}
         
+        # Get incidence matrices
+        incidence_1 = cc.incidence_matrix(0, 1)
+        incidence_2 = cc.incidence_matrix(0, 2) if 2 in cc.cells else None
+        
         # Add regular edges as hyperedges
-        for edge in edges:
-            boundary = cc.cells[1][edge].boundary
-            if boundary:  # Only add if boundary exists
-                hyperedge = [vertex_to_idx[v] for v in boundary if v in vertex_to_idx]
-                if len(hyperedge) > 1:  # Only add if hyperedge contains at least 2 vertices
-                    hyperedges.append(hyperedge)
+        for i, edge in enumerate(edges):
+            # Get vertices connected by this edge from incidence matrix
+            vertex_indices = [v for v, row in enumerate(incidence_1[:,i].toarray()) if row[0] != 0]
+            if len(vertex_indices) > 1:  # Only add if hyperedge contains at least 2 vertices
+                hyperedges.append(vertex_indices)
         
         # Add faces as hyperedges
-        for face in faces:
-            # Get vertices that form the boundary of the face
-            face_boundary = set()
-            for edge in cc.cells[2][face].boundary:
-                if edge in cc.cells[1]:
-                    face_boundary.update(cc.cells[1][edge].boundary)
-            
-            hyperedge = [vertex_to_idx[v] for v in face_boundary if v in vertex_to_idx]
-            if len(hyperedge) > 2:  # Only add if hyperedge contains at least 3 vertices
-                hyperedges.append(hyperedge)
+        if incidence_2 is not None:
+            for i, face in enumerate(faces):
+                # Get vertices that form the boundary of the face from incidence matrix
+                vertex_indices = [v for v, row in enumerate(incidence_2[:,i].toarray()) if row[0] != 0]
+                if len(vertex_indices) > 2:  # Only add if hyperedge contains at least 3 vertices
+                    hyperedges.append(vertex_indices)
         
-        # Create incidence matrix
         n_vertices = len(vertices)
         n_hyperedges = len(hyperedges)
         rows = []
