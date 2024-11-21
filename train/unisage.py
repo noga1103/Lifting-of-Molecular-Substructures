@@ -29,7 +29,7 @@ class UNISAGEModel(torch.nn.Module):
         self.lin_0_input = torch.nn.Linear(ONE_HOT_0_ENCODING_SIZE, hidden_dimensions)
         self.lin_1_input = torch.nn.Linear(ONE_HOT_1_ENCODING_SIZE, hidden_dimensions)
 
-        self.base_model = UniSAGE(
+        self.base_model = UNISAGE(
             in_channels=hidden_dimensions,
             hidden_channels=hidden_dimensions,
             input_drop=input_drop,
