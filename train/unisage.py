@@ -65,6 +65,7 @@ class UNISAGEModel(torch.nn.Module):
         return zero_dimensional_cells_mean + one_dimensional_cells_mean
 
     @staticmethod
+       
     def convert_to_hypergraph(cc):
         # Get incidence matrix directly for edges (dim 0 to 1)
         incidence_1 = cc.incidence_matrix(0, 1)
@@ -94,7 +95,7 @@ class UNISAGEModel(torch.nn.Module):
                     hyperedges.append(connected_vertices)
         
         # Create the new incidence matrix
-        n_vertices = len(vertices)
+        n_vertices = incidence_1_dense.shape[0]  # Use actual number of vertices from incidence matrix
         n_hyperedges = len(hyperedges)
         
         # Create new sparse matrix directly from hyperedges
@@ -112,14 +113,15 @@ class UNISAGEModel(torch.nn.Module):
         print(f"Matrix dimensions: {n_vertices} x {n_hyperedges}")
         print(f"Max vertex index: {max(rows) if rows else -1}")
         print(f"Number of hyperedges: {len(hyperedges)}")
+        print(f"Original incidence matrix shape: {incidence_1_dense.shape}")
         
         incidence_matrix = csr_matrix(
             (data, (rows, cols)),
             shape=(n_vertices, n_hyperedges)
         )
         
-        return vertices, hyperedges, incidence_matrix
-        
+        return vertices, hyperedges, incidence_matrix    
+            
     @staticmethod
     def add_graph_matrices(enhanced_graph):
         cc = enhanced_graph.data.combinatorial_complex
