@@ -123,7 +123,7 @@ class UNISAGEModel(torch.nn.Module):
         cc = enhanced_graph.data.combinatorial_complex
         
         # Convert combinatorial complex to hypergraph
-        vertices, hyperedges, incidence_matrix = UniSAGEModel.convert_to_hypergraph(cc)
+        vertices, hyperedges, incidence_matrix = UNISAGEModel.convert_to_hypergraph(cc)
         
         x_0 = generate_x_0(cc).to(DEVICE)
         x_1 = generate_x_1_combinatorial(cc).to(DEVICE)
