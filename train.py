@@ -17,7 +17,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
-# from train.unisage import UNISAGEModel
+from train.unisage import UNISAGEModel
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY", None)
 
