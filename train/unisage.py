@@ -109,11 +109,7 @@ class UNISAGEModel(torch.nn.Module):
                 cols.append(i)
                 data.append(1)
         
-        # Debug prints
-        print(f"Matrix dimensions: {n_vertices} x {n_hyperedges}")
-        print(f"Max vertex index: {max(rows) if rows else -1}")
-        print(f"Number of hyperedges: {len(hyperedges)}")
-        print(f"Original incidence matrix shape: {incidence_1_dense.shape}")
+     
         
         incidence_matrix = csr_matrix(
             (data, (rows, cols)),
