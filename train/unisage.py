@@ -65,54 +65,52 @@ class UNISAGEModel(torch.nn.Module):
         return zero_dimensional_cells_mean + one_dimensional_cells_mean
 
     @staticmethod
+    @staticmethod
     def convert_to_hypergraph(cc):
         vertices = list(cc.cells[0].keys())
         
-        edges = list(cc.cells[1].keys()) if 1 in cc.cells else []
-        faces = list(cc.cells[2].keys()) if 2 in cc.cells else []
+        incidence_1 = cc.incidence_matrix(0, 1)
         
-        # Create hyperedges from both edges and faces
-        hyperedges = []
+        incidence_dense = incidence_1.todense()
+        
         vertex_to_idx = {v: i for i, v in enumerate(vertices)}
         
-        # Get incidence matrices
-        incidence_1 = cc.incidence_matrix(0, 1)
-        incidence_2 = cc.incidence_matrix(0, 2) if 2 in cc.cells else None
+        rows, cols = np.nonzero(incidence_dense)
         
-        # Add regular edges as hyperedges
-        for i, edge in enumerate(edges):
-            # Get vertices connected by this edge from incidence matrix
-            vertex_indices = [v for v, row in enumerate(incidence_1[:,i].toarray()) if row[0] != 0]
-            if len(vertex_indices) > 1:  # Only add if hyperedge contains at least 2 vertices
-                hyperedges.append(vertex_indices)
+        hyperedges = []
+        unique_cols = np.unique(cols)
+        for col in unique_cols:
+            # Get all vertices connected in this hyperedge
+            connected_vertices = rows[cols == col].tolist()
+            if len(connected_vertices) > 1:  # Only add if at least 2 vertices
+                hyperedges.append(connected_vertices)
         
-        # Add faces as hyperedges
-        if incidence_2 is not None:
-            for i, face in enumerate(faces):
-                # Get vertices that form the boundary of the face from incidence matrix
-                vertex_indices = [v for v, row in enumerate(incidence_2[:,i].toarray()) if row[0] != 0]
-                if len(vertex_indices) > 2:  # Only add if hyperedge contains at least 3 vertices
-                    hyperedges.append(vertex_indices)
-        
+        # Create new incidence matrix with correct dimensions
         n_vertices = len(vertices)
         n_hyperedges = len(hyperedges)
-        rows = []
-        cols = []
+        new_rows = []
+        new_cols = []
         data = []
         
         for i, he in enumerate(hyperedges):
             for v in he:
-                rows.append(v)
-                cols.append(i)
+                new_rows.append(v)
+                new_cols.append(i)
                 data.append(1)
         
+        # Create the sparse matrix with explicit dimensions
         incidence_matrix = csr_matrix(
-            (data, (rows, cols)),
+            (data, (new_rows, new_cols)),
             shape=(n_vertices, n_hyperedges)
         )
         
+        # Add debug print statements
+        print(f"Number of vertices: {n_vertices}")
+        print(f"Number of hyperedges: {n_hyperedges}")
+        print(f"Max row index: {max(new_rows) if new_rows else -1}")
+        print(f"Max col index: {max(new_cols) if new_cols else -1}")
+        
         return vertices, hyperedges, incidence_matrix
-
     @staticmethod
     def add_graph_matrices(enhanced_graph):
         cc = enhanced_graph.data.combinatorial_complex
