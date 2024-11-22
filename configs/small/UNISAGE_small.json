@@ -1,6 +1,6 @@
 {
-    "name": "CCXN_small",
-    "model": "CCXNModel",
+    "name": "UNISAGE_small",
+    "model": "UNISAGEModel",
     "hidden_dimensions": 12,
     "n_layers": 4,
     "learning_rate": 0.001,
