@@ -1,13 +1,13 @@
 {
     "name": "CAN_small",
     "model": "CANModel",
-    "hidden_dimensions": 20,
-    "n_layers": 2,
+    "hidden_dimensions": 12,
+    "n_layers": 4,
     "learning_rate": 0.001,
-    "num_epochs": 10,
+    "num_epochs": 100,
     "test_interval": 5,
     "test_size": 0.2,
-    "dataset": "zinc_small",
-    "gradient_accumulation_steps": 10,
-    "epoch_size": 100
+    "dataset": "zinc",
+    "gradient_accumulation_steps": 400,
+    "epoch_size": 5000
 }
