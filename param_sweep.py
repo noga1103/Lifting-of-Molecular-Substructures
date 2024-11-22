@@ -1,19 +1,26 @@
 import os
 import json
 
-INPUT_DIR = "./configs/default"
-OUTPUT_DIR = "./configs/param_sweep_new"
+INPUT_DIR = "./configs/small"
+OUTPUT_DIR = "./configs/param_sweep_4"
 
 
-def update_learning_rate(config):
+def update_config(config):
     """Update the learning_rate key in the config for each rate and return modified configs."""
     updated_configs = []
-    updated_config = config.copy()
-    updated_config["learning_rate"] = 0.001
-    updated_config["gradient_accumulation_steps"] = 400
-    updated_config["num_epochs"] = 100
-    updated_config["epoch_size"] = 5000
-    updated_configs.append(updated_config)
+
+    molhiv_config = config.copy()
+    molhiv_config["name"] = molhiv_config["name"] + "_molhiv"
+    molhiv_config["num_epochs"] = 50
+    molhiv_config["dataset"] = "molhiv"
+    updated_configs.append(molhiv_config)
+
+    release_config = config.copy()
+    release_config["name"] = release_config["name"] + "_release"
+    release_config["num_epochs"] = 50
+    release_config["dataset"] = "release"
+    updated_configs.append(release_config)
+
     return updated_configs
 
 
@@ -26,7 +33,7 @@ def main():
         with open(input_path, "r") as f:
             config = json.load(f)
 
-        updated_configs = update_learning_rate(config)
+        updated_configs = update_config(config)
 
         # Save
         for updated_config in updated_configs:
