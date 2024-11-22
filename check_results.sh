@@ -11,6 +11,7 @@ for file in output/*; do
     echo "$file" >> "$results_file"
     grep "\"name" "$file" >> "$results_file"
     grep "\"model" "$file" >> "$results_file"
+    grep "\"dataset" "$file" >> "$results_file"
     grep "\"learning_rate" "$file" >> "$results_file"
     grep ^Parameters "$file" >> "$results_file"
     grep MAE "$file" | tail -n 1 >> "$results_file"
