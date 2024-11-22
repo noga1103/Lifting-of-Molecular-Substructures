@@ -10,7 +10,7 @@ from train.hnhn import HNHNModel
 
 from train.hmc import HMCModel
 import wandb
-from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data
+from train.train_utils import DEVICE, WEIGHT_DTYPE, load_molhiv_data, load_zinc_data_small, load_zinc_data, load_release_data
 import json
 import sys
 import os
@@ -18,6 +18,7 @@ import random
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from train.unisage import UNISAGEModel
+
 SLURM_JOB_ID = os.environ.get("SLURM_JOB_ID", f"local_{random.randint(0, 100000)}")
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY", None)
 
@@ -58,6 +59,8 @@ def prepare_data(config, model):
         data = load_zinc_data()
     elif config["dataset"] == "zinc_small":
         data = load_zinc_data_small()
+    elif config["dataset"] == "release":
+        data = load_release_data()
     else:
         raise ValueError("Unknown dataset: {}".format(config["dataset"]))
 

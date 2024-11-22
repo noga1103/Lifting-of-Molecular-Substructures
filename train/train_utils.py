@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import dataset.molhiv
+import dataset.release
 import dataset.zinc
 import rdkit.Chem
 import toponetx as tnx
@@ -64,6 +65,11 @@ def enhance_graphs(datas, regression_fn):
 def load_molhiv_data() -> list[EnhancedGraph]:
     datas = dataset.molhiv.get_data()
     return enhance_graphs(datas, lambda x: x.solubility)
+
+
+def load_release_data() -> list[EnhancedGraph]:
+    datas = dataset.release.get_data()
+    return enhance_graphs(datas, lambda x: x.log_p)
 
 
 def load_zinc_data_small() -> list[EnhancedGraph]:
