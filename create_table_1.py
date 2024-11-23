@@ -21,8 +21,6 @@ with open("output_data.csv", "r") as csvfile:
     reader = csv.reader(csvfile)
     next(reader)  # Skip the header
     for row in reader:
-        if len(row) != 7:
-            continue
         run_number, name, model, dataset, max_epoch, parameters, MAE = row
         models.add(model)
         size = extract_size(name)

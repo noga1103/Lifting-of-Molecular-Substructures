@@ -18,3 +18,4 @@ adding graph matrices took: 1.504626s
 Data loaded: 434
 Starting training...
 Epoch:5, Train Loss: 3.7146, Test Loss: 4.3069, R2: 0.0799, MAE: 1.6282, RMSE: 2.0753
+Epoch:10, Train Loss: 3.5060, Test Loss: 3.9773, R2: 0.1503, MAE: 1.5869, RMSE: 1.9943
