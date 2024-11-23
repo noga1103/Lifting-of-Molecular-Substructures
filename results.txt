@@ -1,119 +1,303 @@
-output/100459.out
+output_keep/100459.out
     "name": "CAN_small",
     "model": "CANModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 2211
 Epoch:100, Train Loss: 2.0875, Test Loss: 9.1577, R2: -4.2116, MAE: 2.8426, RMSE: 3.0262
 =================
-output/100460.out
+output_keep/100460.out
     "name": "CAN_wide",
     "model": "CANModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 20803
 Epoch:100, Train Loss: 1.4645, Test Loss: 4.1876, R2: -1.6902, MAE: 1.8366, RMSE: 2.0464
 =================
-output/100461.out
+output_keep/100461.out
     "name": "CCXN_deep",
     "model": "CCXNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 5667
 Epoch:100, Train Loss: 2.7697, Test Loss: 2.9767, R2: -0.6513, MAE: 1.2559, RMSE: 1.7253
 =================
-output/100462.out
+output_keep/100462.out
     "name": "CCXN_default",
     "model": "CCXNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 10563
 Epoch:100, Train Loss: 2.1265, Test Loss: 1.7761, R2: -0.0347, MAE: 0.9082, RMSE: 1.3327
 =================
-output/100463.out
+output_keep/100463.out
     "name": "CCXN_large",
     "model": "CCXNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 77955
 Epoch:100, Train Loss: 1.6021, Test Loss: 1.7210, R2: -0.0077, MAE: 0.9004, RMSE: 1.3119
 =================
-output/100464.out
+output_keep/100464.out
     "name": "CCXN_small",
     "model": "CCXNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 1635
 Epoch:100, Train Loss: 1.7677, Test Loss: 2.2916, R2: -0.1811, MAE: 0.9770, RMSE: 1.5138
 =================
-output/100465.out
+output_keep/100465.out
     "name": "CCXN_wide",
     "model": "CCXNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 20355
 Epoch:100, Train Loss: 1.4137, Test Loss: 2.0660, R2: 0.0713, MAE: 0.8600, RMSE: 1.4374
 =================
-output/100466.out
+output_keep/100466.out
     "name": "CWN_deep",
     "model": "CWNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 10191
 Epoch:100, Train Loss: 26998810986803676315648.0000, Test Loss: 94972666485907302383616.0000, R2: -51808623701634446262272.0000, MAE: 13536788551.1271, RMSE: 308176355888.7949
 =================
-output/100467.out
+output_keep/100467.out
     "name": "CWN_default",
     "model": "CWNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 14743
 Epoch:100, Train Loss: 46068.3610, Test Loss: 474379.1462, R2: -267418.1346, MAE: 38.1428, RMSE: 688.7519
 =================
-output/100468.out
+output_keep/100468.out
     "name": "CWN_large",
     "model": "CWNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 109003
 Epoch:100, Train Loss: 32922136859850580701478912.0000, Test Loss: 65236303267927051126964224.0000, R2: -41305035956861732615356416.0000, MAE: 440651953252.7144, RMSE: 8076899340477.0439
 =================
-output/100469.out
+output_keep/100469.out
     "name": "CWN_small",
     "model": "CWNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 3135
 Epoch:100, Train Loss: 1.4068, Test Loss: 1.4774, R2: 0.1369, MAE: 0.8009, RMSE: 1.2155
 =================
-output/100470.out
+output_keep/100470.out
     "name": "CWN_wide",
     "model": "CWNModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 31723
 Epoch:100, Train Loss: 1.7966, Test Loss: 2.4220, R2: 0.0501, MAE: 0.8369, RMSE: 1.5563
 =================
-output/100471.out
+output_keep/100471.out
     "name": "HMC_deep",
     "model": "HMCModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 2235
 Epoch:100, Train Loss: 1.7099, Test Loss: 2.9123, R2: 0.0315, MAE: 0.8500, RMSE: 1.7065
 =================
-output/100472.out
+output_keep/100472.out
     "name": "HMC_default",
     "model": "HMCModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 5643
 Epoch:100, Train Loss: 1.5654, Test Loss: 1.5568, R2: 0.1024, MAE: 0.8128, RMSE: 1.2477
 =================
-output/100473.out
+output_keep/100473.out
     "name": "HMC_large",
     "model": "HMCModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 20883
 Epoch:100, Train Loss: 1.9412, Test Loss: 1.5881, R2: 0.1118, MAE: 0.8106, RMSE: 1.2602
 =================
-output/100474.out
+output_keep/100474.out
     "name": "HMC_small",
     "model": "HMCModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 2235
 Epoch:100, Train Loss: 1.6825, Test Loss: 1.3693, R2: 0.0962, MAE: 0.8086, RMSE: 1.1702
 =================
-output/100475.out
+output_keep/100475.out
     "name": "HMC_wide",
     "model": "HMCModel",
+    "dataset": "zinc",
     "learning_rate": 0.001,
 Parameters: 20883
 Epoch:100, Train Loss: 1.6611, Test Loss: 1.8469, R2: 0.0955, MAE: 0.8201, RMSE: 1.3590
+=================
+output_keep/101667.out
+    "name": "CAN_deep",
+    "model": "CANModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 7971
+Epoch:100, Train Loss: 1.5125, Test Loss: 1.5978, R2: 0.0063, MAE: 0.9226, RMSE: 1.2640
+=================
+output_keep/101668.out
+    "name": "CAN_wide",
+    "model": "CANModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 20803
+Epoch:100, Train Loss: 1.9168, Test Loss: 4.2190, R2: -1.1797, MAE: 1.7973, RMSE: 2.0540
+=================
+output_keep/107081.out
+    "name": "HNHN_small",
+    "model": "HNHNModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 1285
+Epoch:100, Train Loss: 2.5368, Test Loss: 1.7141, R2: -0.0632, MAE: 0.9088, RMSE: 1.3092
+=================
+output_keep/107082.out
+    "name": "HNHN_wide",
+    "model": "HNHNModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 12121
+Epoch:100, Train Loss: 1.9863, Test Loss: 1.6347, R2: -0.0229, MAE: 0.9178, RMSE: 1.2786
+=================
+output_keep/108515.out
+    "name": "UNISAGE_deep",
+    "model": "UNISAGEModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 434
+Epoch:100, Train Loss: 1.7214, Test Loss: 2.1085, R2: -0.0269, MAE: 0.9235, RMSE: 1.4521
+=================
+output_keep/108516.out
+    "name": "UNISAGE_default",
+    "model": "UNISAGEModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 882
+Epoch:100, Train Loss: 2.0471, Test Loss: 1.5137, R2: -0.0134, MAE: 0.8754, RMSE: 1.2303
+=================
+output_keep/108517.out
+    "name": "UNISAGE_large",
+    "model": "UNISAGEModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 3458
+Epoch:100, Train Loss: 1.7644, Test Loss: 1.8374, R2: -0.0139, MAE: 0.9035, RMSE: 1.3555
+=================
+output_keep/108518.out
+    "name": "UNISAGE_small",
+    "model": "UNISAGEModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 434
+Epoch:100, Train Loss: 1.8500, Test Loss: 1.7074, R2: -0.0358, MAE: 0.9067, RMSE: 1.3067
+=================
+output_keep/108519.out
+    "name": "UNISAGE_wide",
+    "model": "UNISAGEModel",
+    "dataset": "zinc",
+    "learning_rate": 0.001,
+Parameters: 2562
+Epoch:100, Train Loss: 2.0933, Test Loss: 2.1008, R2: -0.0135, MAE: 0.9146, RMSE: 1.4494
+=================
+output_keep/108884.out
+    "name": "CAN_small_molhiv",
+    "model": "CANModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 2211
+Epoch:50, Train Loss: 3.3995, Test Loss: 3.4542, R2: 0.1428, MAE: 1.4661, RMSE: 1.8585
+=================
+output_keep/108885.out
+    "name": "CAN_small_release",
+    "model": "CANModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 2211
+Epoch:50, Train Loss: 1.5375, Test Loss: 1.7877, R2: 0.2933, MAE: 1.0132, RMSE: 1.3371
+=================
+output_keep/108886.out
+    "name": "CCXN_small_molhiv",
+    "model": "CCXNModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 1635
+Epoch:50, Train Loss: 3.2800, Test Loss: 3.1381, R2: 0.2723, MAE: 1.4162, RMSE: 1.7715
+=================
+output_keep/108887.out
+    "name": "CCXN_small_release",
+    "model": "CCXNModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 1635
+Epoch:50, Train Loss: 2.5284, Test Loss: 2.4737, R2: 0.0916, MAE: 1.2150, RMSE: 1.5728
+=================
+output_keep/108888.out
+    "name": "CWN_small_molhiv",
+    "model": "CWNModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 3135
+Epoch:50, Train Loss: 2.4098, Test Loss: 2.6048, R2: 0.4122, MAE: 1.2368, RMSE: 1.6139
+=================
+output_keep/108889.out
+    "name": "CWN_small_release",
+    "model": "CWNModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 3135
+Epoch:50, Train Loss: 2.2350, Test Loss: 2.0450, R2: 0.1617, MAE: 1.1092, RMSE: 1.4300
+=================
+output_keep/108890.out
+    "name": "HMC_small_molhiv",
+    "model": "HMCModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 2235
+=================
+output_keep/108891.out
+    "name": "HMC_small_release",
+    "model": "HMCModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 2235
+Epoch:50, Train Loss: 2.0648, Test Loss: 2.2813, R2: 0.1451, MAE: 1.1609, RMSE: 1.5104
+=================
+output_keep/108892.out
+    "name": "HNHN_small_molhiv",
+    "model": "HNHNModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 1285
+Epoch:50, Train Loss: 3.3734, Test Loss: 3.9185, R2: 0.1406, MAE: 1.4840, RMSE: 1.9795
+=================
+output_keep/108893.out
+    "name": "HNHN_small_release",
+    "model": "HNHNModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 1285
+Epoch:50, Train Loss: 2.6519, Test Loss: 2.6714, R2: 0.0004, MAE: 1.2499, RMSE: 1.6345
+=================
+output_keep/108894.out
+    "name": "UNISAGE_small_molhiv",
+    "model": "UNISAGEModel",
+    "dataset": "molhiv",
+    "learning_rate": 0.001,
+Parameters: 434
+Epoch:50, Train Loss: 13.6294, Test Loss: 13.1556, R2: -1.9409, MAE: 3.0505, RMSE: 3.6271
+=================
+output_keep/108895.out
+    "name": "UNISAGE_small_release",
+    "model": "UNISAGEModel",
+    "dataset": "release",
+    "learning_rate": 0.001,
+Parameters: 434
+Epoch:50, Train Loss: 2.4876, Test Loss: 2.5710, R2: 0.0208, MAE: 1.2350, RMSE: 1.6034
 =================

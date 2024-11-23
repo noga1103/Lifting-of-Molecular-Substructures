@@ -10,12 +10,11 @@ data = sys.stdin.read()
 pattern = re.compile(
     r"output/(?P<run_number>\d+)\.out.*?"
     r'"name":\s*"(?P<name>[^"]+)",\s*'
-    r'"model":\s*"(?P<model>[^"]+)",.*?'
-    r'"dataset":\s*"(?P<datset>[^"]+)",.*?'
+    r'"model":\s*"(?P<model>[^"]+)",\s*'
+    r'"dataset":\s*"(?P<dataset>[^"]+)",.*?'
     r"Parameters:\s*(?P<parameters>\d+).*?"
-    r"Train Loss:\s*(?P<train_loss>[\d.eE+-]+),\s*"
-    r"Test Loss:\s*(?P<test_loss>[\d.eE+-]+),.*?"
-    r"MAE:\s*(?P<mae>[\d.eE+-]+)",
+    r"Epoch:(?P<max_epoch>\d+),\s*Train Loss:\s*(?P<train_loss>[\d.eE+-]+),\s*"
+    r"Test Loss:\s*(?P<test_loss>[\d.eE+-]+),.*?MAE:\s*(?P<mae>[\d.eE+-]+)",
     re.DOTALL | re.MULTILINE,
 )
 
@@ -31,6 +30,7 @@ for match in matches:
             match.group("name"),
             match.group("model"),
             match.group("dataset"),
+            match.group("max_epoch"),
             match.group("parameters"),
             match.group("train_loss"),
             match.group("test_loss"),
@@ -49,6 +49,7 @@ with open(output_csv, "w", newline="") as csvfile:
             "name",
             "model",
             "dataset",
+            "max epoch",
             "parameters",
             "train_loss",
             "test_loss",
