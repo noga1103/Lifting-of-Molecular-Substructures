@@ -7,7 +7,7 @@ results_file="results.txt"
 > "$results_file"
 
 # Loop through files in the output directory
-for file in output/*; do
+for file in output_keep/*; do
     echo "$file" >> "$results_file"
     grep "\"name" "$file" >> "$results_file"
     grep "\"model" "$file" >> "$results_file"
