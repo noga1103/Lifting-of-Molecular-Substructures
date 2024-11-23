@@ -1,6 +1,7 @@
 # Chemistry-Aware Topological Neural Networks for Molecular Property Prediction
 
-Implementation of Topological Neural Networks (TNNs) for molecular property prediction, focusing on chemistry-aware lifting of molecular substructures.
+This project explores the application of Topological Neural Networks (TNNs) to molecular property prediction by leveraging chemical substructures. TNNs are a generalization of Graph Neural Networks that can model higher-order interactions between nodes, making them particularly well-suited for molecular analysis where functional groups and substructures play crucial roles in determining chemical properties.
+Our implementation compares six different TNN architectures across three molecular datasets (ZINC-12k, ogbg-molhiv, and ReLeaSE), with a focus on predicting properties like solubility and binding affinity. We utilize the BRICS algorithm for chemical-aware decomposition of molecules into meaningful substructures, which are then lifted into higher-order topological features for processing by our models.
 
 ## Requirements
 
