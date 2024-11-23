@@ -28,3 +28,4 @@ Loaded dataset/pkl_data/zinc_11.pkl in 1.292746s
 adding graph matrices took: 713.99987s
 Data loaded: 249455
 Starting training...
+Epoch:5, Train Loss: 5.5603, Test Loss: 46.9706, R2: -22.1927, MAE: 6.7372, RMSE: 6.8535
