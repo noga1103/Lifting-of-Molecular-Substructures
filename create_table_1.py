@@ -1,3 +1,4 @@
+from collections import defaultdict
 import csv
 
 
@@ -28,16 +29,15 @@ with open("output_data.csv", "r") as csvfile:
         data_list.append({"model": model, "name": name, "dataset": dataset, "MAE": MAE, "size": size})
 
 # Define the order of sizes for consistent column ordering
-sizes_ordered = ["small", "wide", "deep", "default", "large"]
-zinc_columns = sizes_ordered
+zinc_columns = ["small", "default", "large", "wide", "deep"]
 molhiv_columns = ["small"]
 release_columns = ["small"]
 
 # All columns in order
 columns = zinc_columns + molhiv_columns + release_columns
 
-# Initialize results dictionary
-results = {model: {column: "" for column in columns} for model in models}
+results = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+models = set()
 
 # Populate the results dictionary
 for record in data_list:
@@ -45,50 +45,43 @@ for record in data_list:
     dataset = record["dataset"]
     MAE = record["MAE"]
     size = record["size"]
+    models.add(model)
     if dataset == "zinc":
         column = size
-    elif dataset == "molhiv":
-        column = "small"  # As per your instruction
-    elif dataset == "release":
+    elif dataset in ["molhiv", "release"]:
         column = "small"  # As per your instruction
     else:
         continue
-    if column in columns:
-        results[model][column] = MAE
+    results[model][dataset][column] = MAE
+
+# Build alignment, headers, and table columns dynamically
+datasets = [("zinc", zinc_columns), ("molhiv", molhiv_columns), ("release", release_columns)]
+
+alignment = "l"  # For the 'Model' column
+header = ["Model"]
+sub_header = [""]
+table_columns = []
+
+for dataset_name, dataset_columns in datasets:
+    num_cols = len(dataset_columns)
+    alignment += "c" * num_cols
+    header.append("\\multicolumn{%d}{c}{%s}" % (num_cols, dataset_name))
+    sub_header.extend(dataset_columns)
+    table_columns.extend([(dataset_name, col) for col in dataset_columns])
 
 # Generate LaTeX table code
-# Start constructing the LaTeX table
-num_zinc_cols = len(zinc_columns)
-num_molhiv_cols = len(molhiv_columns)
-num_release_cols = len(release_columns)
-
-# Alignment
-alignment = "l" + "c" * (num_zinc_cols + num_molhiv_cols + num_release_cols)
-
 print("\\begin{tabular}{%s}" % alignment)
 print("\\hline")
-
-# First header row
-header = ["Model"]
-header += ["\\multicolumn{%d}{c}{zinc}" % num_zinc_cols]
-header += ["\\multicolumn{%d}{c}{molhiv}" % num_molhiv_cols]
-header += ["\\multicolumn{%d}{c}{release}" % num_release_cols]
 print(" & ".join(header) + " \\\\")
-
-# Second header row
-sub_header = [""]
-sub_header += zinc_columns
-sub_header += molhiv_columns
-sub_header += release_columns
 print(" & " + " & ".join(sub_header) + " \\\\")
 print("\\hline")
 
 # Fill in the data rows
 for model in sorted(models):
     row = [model]
-    for col in columns:
-        value = results[model][col]
-        row.append(value)
+    for dataset_name, col in table_columns:
+        value = results[model][dataset_name].get(col, "")
+        row.append(str(value))
     print(" & ".join(row) + " \\\\")
 
 print("\\hline")

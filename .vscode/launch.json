@@ -108,5 +108,17 @@
                 "PYTHONPATH": "${workspaceFolder}"
             }
         },
+        {
+            "name": "create table 1",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/create_table_1.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
     ]
 }
