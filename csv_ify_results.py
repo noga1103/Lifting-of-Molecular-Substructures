@@ -6,17 +6,16 @@ import sys
 data = sys.stdin.read()
 
 
-# Regex to extract relevant fields with multiline support
 pattern = re.compile(
-    r"output/(?P<run_number>\d+)\.out.*?"
-    r'"name":\s*"(?P<name>[^"]+)",\s*'
-    r'"model":\s*"(?P<model>[^"]+)",\s*'
-    r'"dataset":\s*"(?P<dataset>[^"]+)",.*?'
-    r"Parameters:\s*(?P<parameters>\d+).*?"
-    r"Epoch:(?P<max_epoch>\d+),\s*Train Loss:\s*(?P<train_loss>[\d.eE+-]+),\s*"
-    r"Test Loss:\s*(?P<test_loss>[\d.eE+-]+),.*?MAE:\s*(?P<mae>[\d.eE+-]+)",
-    re.DOTALL | re.MULTILINE,
+    r"""output_keep/(?P<run_number>\d+)\.out\s*
+\s*"name":\s*"(?P<name>[^"]+)",\s*
+\s*"model":\s*"(?P<model>[^"]+)",\s*
+\s*"dataset":\s*"(?P<dataset>[^"]+)",\s*
+(?:\s*"learning_rate":\s*[^,]+,\s*)?
+Parameters:\s*(?P<parameters>\d+)\s*
+Epoch:(?P<epoch>\d+),.*?MAE:\s*(?P<MAE>[^,]+),"""
 )
+
 
 # Match the regex and extract data
 matches = pattern.finditer(data)
@@ -30,11 +29,9 @@ for match in matches:
             match.group("name"),
             match.group("model"),
             match.group("dataset"),
-            match.group("max_epoch"),
+            match.group("epoch"),
             match.group("parameters"),
-            match.group("train_loss"),
-            match.group("test_loss"),
-            match.group("mae"),
+            match.group("MAE"),
         ]
     )
 

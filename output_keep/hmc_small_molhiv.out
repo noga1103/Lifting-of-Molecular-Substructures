@@ -1,0 +1,20 @@
+Running job local_76202 with config: configs/param_sweep_4/HMC_small_molhiv.json
+{
+    "name": "HMC_small_molhiv",
+    "model": "HMCModel",
+    "hidden_dimensions": 12,
+    "n_layers": 4,
+    "learning_rate": 0.001,
+    "num_epochs": 50,
+    "test_interval": 5,
+    "test_size": 0.2,
+    "dataset": "molhiv",
+    "gradient_accumulation_steps": 400,
+    "epoch_size": 5000
+}
+Parameters: 2235
+Filtered out 694 graphs with no cells.
+adding graph matrices took: 1.504626s
+Data loaded: 434
+Starting training...
+Epoch:5, Train Loss: 3.7146, Test Loss: 4.3069, R2: 0.0799, MAE: 1.6282, RMSE: 2.0753
