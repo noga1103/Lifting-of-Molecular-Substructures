@@ -36,3 +36,9 @@ run_number,name,model,dataset,max epoch,parameters,train_loss,test_loss,MAE
 108893,HNHN_small_release,HNHNModel,release,50,1285,1.2499
 108894,UNISAGE_small_molhiv,UNISAGEModel,molhiv,50,434,3.0505
 108895,UNISAGE_small_release,UNISAGEModel,release,50,434,1.2350
+110956,CAN_default,CANModel,zinc,100,10723,1.2949
+110957,CAN_large,CANModel,zinc,50,80323,3.1405
+110958,HNHN_deep,HNHNModel,zinc,5,5029,2.7896
+110959,HNHN_default,HNHNModel,zinc,10,6621,1.6325
+110960,HNHN_large,HNHNModel,zinc,5,51481,1.7918
+hmc_small_molhiv,HMC_small_molhiv,HMCModel,molhiv,50,2235,1.4399
