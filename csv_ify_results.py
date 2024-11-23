@@ -7,7 +7,7 @@ data = sys.stdin.read()
 
 
 pattern = re.compile(
-    r"""output_keep/(?P<run_number>\d+)\.out\s*
+    r"""output_keep/(?P<run_number>[^"]+)\.out\s*
 \s*"name":\s*"(?P<name>[^"]+)",\s*
 \s*"model":\s*"(?P<model>[^"]+)",\s*
 \s*"dataset":\s*"(?P<dataset>[^"]+)",\s*
