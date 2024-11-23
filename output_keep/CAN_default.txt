@@ -30,3 +30,10 @@ Data loaded: 249455
 Starting training...
 Epoch:5, Train Loss: 5.2898, Test Loss: 27.2396, R2: -16.7419, MAE: 5.0874, RMSE: 5.2192
 Epoch:10, Train Loss: 3.8454, Test Loss: 28.3080, R2: -14.6550, MAE: 5.1743, RMSE: 5.3205
+Epoch:15, Train Loss: 3.7566, Test Loss: 31.9573, R2: -13.6631, MAE: 5.5049, RMSE: 5.6531
+Epoch:20, Train Loss: 4.2452, Test Loss: 32.6098, R2: -15.9615, MAE: 5.5655, RMSE: 5.7105
+Epoch:25, Train Loss: 3.1944, Test Loss: 32.5393, R2: -15.9947, MAE: 5.5785, RMSE: 5.7043
+Epoch:30, Train Loss: 2.8631, Test Loss: 30.8287, R2: -14.7286, MAE: 5.4143, RMSE: 5.5524
+Epoch:35, Train Loss: 2.8391, Test Loss: 30.9873, R2: -18.3892, MAE: 5.4380, RMSE: 5.5666
+Epoch:40, Train Loss: 2.7982, Test Loss: 28.5791, R2: -15.3931, MAE: 5.2175, RMSE: 5.3459
+Epoch:45, Train Loss: 2.4146, Test Loss: 25.1390, R2: -14.3112, MAE: 4.8777, RMSE: 5.0139
