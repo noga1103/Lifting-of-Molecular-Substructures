@@ -1,0 +1,30 @@
+Running job local_8740 with config: configs/param_sweep_3/CAN_default.json
+{
+    "name": "CAN_default",
+    "model": "CANModel",
+    "hidden_dimensions": 20,
+    "n_layers": 8,
+    "learning_rate": 0.001,
+    "num_epochs": 100,
+    "test_interval": 5,
+    "test_size": 0.2,
+    "dataset": "zinc",
+    "gradient_accumulation_steps": 400,
+    "epoch_size": 5000
+}
+Parameters: 10723
+Loaded dataset/pkl_data/zinc_0.pkl in 1.714231s
+Loaded dataset/pkl_data/zinc_1.pkl in 1.318067s
+Loaded dataset/pkl_data/zinc_2.pkl in 1.281357s
+Loaded dataset/pkl_data/zinc_3.pkl in 1.86034s
+Loaded dataset/pkl_data/zinc_4.pkl in 1.462015s
+Loaded dataset/pkl_data/zinc_5.pkl in 1.321832s
+Loaded dataset/pkl_data/zinc_6.pkl in 1.291863s
+Loaded dataset/pkl_data/zinc_7.pkl in 2.44244s
+Loaded dataset/pkl_data/zinc_8.pkl in 2.092601s
+Loaded dataset/pkl_data/zinc_9.pkl in 1.392061s
+Loaded dataset/pkl_data/zinc_10.pkl in 2.161607s
+Loaded dataset/pkl_data/zinc_11.pkl in 1.375646s
+adding graph matrices took: 734.332354s
+Data loaded: 249455
+Starting training...

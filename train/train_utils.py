@@ -64,7 +64,9 @@ def enhance_graphs(datas, regression_fn):
 
 def load_molhiv_data() -> list[EnhancedGraph]:
     datas = dataset.molhiv.get_data()
-    return enhance_graphs(datas, lambda x: x.solubility)
+    filtered_datas = [d for d in datas if len(d.cell_complex.cells) >= 2]
+    print(f"Filtered out {len(datas) - len(filtered_datas)} graphs with no cells.")
+    return enhance_graphs(filtered_datas, lambda x: x.solubility)
 
 
 def load_release_data() -> list[EnhancedGraph]:
