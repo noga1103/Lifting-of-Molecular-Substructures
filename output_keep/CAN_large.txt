@@ -38,3 +38,13 @@ Epoch:35, Train Loss: 2.7337, Test Loss: 27.2990, R2: -15.3505, MAE: 5.0893, RMS
 Epoch:40, Train Loss: 2.5834, Test Loss: 21.7632, R2: -10.9426, MAE: 4.5151, RMSE: 4.6651
 Epoch:45, Train Loss: 2.5189, Test Loss: 16.1614, R2: -8.5049, MAE: 3.8597, RMSE: 4.0201
 Epoch:50, Train Loss: 1.8677, Test Loss: 12.0082, R2: -3.8316, MAE: 3.1929, RMSE: 3.4653
+Epoch:55, Train Loss: 1.8086, Test Loss: 7.4942, R2: -3.0413, MAE: 2.5221, RMSE: 2.7375
+Epoch:60, Train Loss: 1.7722, Test Loss: 4.7283, R2: -1.9007, MAE: 1.9518, RMSE: 2.1745
+Epoch:65, Train Loss: 1.7073, Test Loss: 3.5342, R2: -0.7415, MAE: 1.5351, RMSE: 1.8799
+Epoch:70, Train Loss: 1.6635, Test Loss: 2.5056, R2: -0.4200, MAE: 1.2381, RMSE: 1.5829
+Epoch:75, Train Loss: 1.2066, Test Loss: 1.9224, R2: -0.1609, MAE: 1.0476, RMSE: 1.3865
+Epoch:80, Train Loss: 1.3505, Test Loss: 1.8966, R2: -0.0356, MAE: 0.9960, RMSE: 1.3772
+Epoch:85, Train Loss: 1.4603, Test Loss: 1.6801, R2: 0.0314, MAE: 0.9219, RMSE: 1.2962
+Epoch:90, Train Loss: 1.6726, Test Loss: 2.0932, R2: 0.0433, MAE: 0.8979, RMSE: 1.4468
+Epoch:95, Train Loss: 1.4449, Test Loss: 2.1071, R2: 0.0636, MAE: 0.8937, RMSE: 1.4516
+Epoch:100, Train Loss: 2.0142, Test Loss: 1.7929, R2: 0.0674, MAE: 0.8971, RMSE: 1.3390
